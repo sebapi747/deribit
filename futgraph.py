@@ -28,6 +28,7 @@ for ticker in ['BTC', 'ETH']:
     plt.title(ticker + " Spot to Future Spread\n" + str(pd.Timestamp(df['timestamp'].iloc[-1], unit='ms')))
     plt.savefig(outdir+ticker+"-spot-to-future-spread.png")
     plt.close()
+    miny, maxy = 10., 0.
     for filename in sorted(dirs):
         if filename[0:3] != ticker or filename[4:]=="PERPETUAL.csv":
             continue
@@ -37,9 +38,11 @@ for ticker in ['BTC', 'ETH']:
         tmat = dt.datetime.strptime(filename[4:-4] + " 21:00", "%d%b%y %H:%M")
         df['yearToMat'] = df.timestamp.apply(lambda x: (tmat-dt.datetime.fromtimestamp(x/1000)).total_seconds()/3600/24/365.25)
         df['yield'] = np.power(df['best_bid_price']/df['estimated_delivery_price'],1/df['yearToMat'])-1
+        miny = min(df['yield'].iloc[-1], miny)
+        maxy = max(df['yield'].iloc[-1], maxy)
         plt.plot(df['date'], df['yield'], label=filename[0:-4])
         plt.gcf().autofmt_xdate()
-    plt.xlabel('timestamp(ms) 10 min intervals')
+    plt.xlabel('min=%.2f%% max=%.2f%%' % (miny*100,maxy*100))
     plt.ylabel('annualized yield')
     plt.legend(bbox_to_anchor=(0,1),loc="upper left")
     plt.title(ticker + " Contango Yield\n" + str(pd.Timestamp(df['timestamp'].iloc[-1], unit='ms')))
