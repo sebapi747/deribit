@@ -5,7 +5,7 @@ import datetime as dt
 import config
 dirname = config.dirname
 smskey = config.smskey
-smsphone = condif.smsphone
+smsphone = config.smsphone
 
 def sendSMS(msg):
     url = 'https://rest.messagebird.com/messages'

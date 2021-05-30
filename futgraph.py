@@ -44,8 +44,9 @@ for ticker in ['BTC', 'ETH']:
             continue
         f = "%s/%s" % (dirname, filename)
         df = pd.read_csv(f)
+        df = df.loc[df['state']!='closed']
         df['date'] = df.timestamp.apply(lambda x: dt.datetime.fromtimestamp(x/1000))
-        df['relativeSpread'] = df['best_bid_price']/df['estimated_delivery_price']
+        df['relativeSpread'] = df['best_bid_price'].astype(float)/df['estimated_delivery_price'].astype(float)
         plt.plot(df['date'], df['relativeSpread'], label="%s %.1f%%" % (filename[0:-4], (df['relativeSpread'].iloc[-1]-1)*100))
         plt.gcf().autofmt_xdate()
     plt.xlabel('timestamp(ms) 10 min intervals')
@@ -60,10 +61,11 @@ for ticker in ['BTC', 'ETH']:
             continue
         f = "%s/%s" % (dirname, filename)
         df = pd.read_csv(f)
+        df = df.loc[df['state']!='closed']
         df['date'] = df.timestamp.apply(lambda x: dt.datetime.fromtimestamp(x/1000))
         tmat = dt.datetime.strptime(filename[4:-4] + " 21:00", "%d%b%y %H:%M")
         df['yearToMat'] = df.timestamp.apply(lambda x: (tmat-dt.datetime.fromtimestamp(x/1000)).total_seconds()/3600/24/365.25)
-        df['yield'] = np.power(df['best_bid_price']/df['estimated_delivery_price'],1/df['yearToMat'])-1
+        df['yield'] = np.power(df['best_bid_price'].astype(float)/df['estimated_delivery_price'].astype(float),1/df['yearToMat'])-1
         miny = min(df['yield'].iloc[-1], miny)
         maxy = max(df['yield'].iloc[-1], maxy)
         plt.plot(df['date'], df['yield'], label="%s %.1f%%" % (filename[0:-4], df['yield'].iloc[-1]*100))
@@ -74,4 +76,29 @@ for ticker in ['BTC', 'ETH']:
     plt.title(ticker + " Contango Yield\n" + str(pd.Timestamp(df['timestamp'].iloc[-1], unit='ms')))
     plt.savefig(outdir+ticker+"-yield.png")
     plt.close()
+
+def getvol(filename):
+    f = "%s/%s" % (dirname, filename)
+    df = pd.read_csv(f)
+    #pd.Timestamp(df['timestamp'].iloc[-1], unit='ms'))
+    df['date'] = df.timestamp.apply(lambda x: dt.datetime.fromtimestamp(x/1000))
+    bar = 1
+    df['logprice'] = np.log(df['last_price'])
+    df['logret'] = df['logprice'].diff(periods=bar)
+    df['std'] = df['logret'].rolling(15).std() * np.sqrt(365*24*60/10./bar)
+    return df
+
+def graphvol():
+    for ticker in ["BTC", "ETH"]:
+        filename = "%s-PERPETUAL.csv" % ticker
+        df = getvol(filename)
+        plt.plot(df['date'],df['std'], label=ticker)
+    plt.title("Historical Volatility")
+    plt.gcf().autofmt_xdate()
+    plt.ylabel("Annualized 10' bar Volatility")
+    plt.legend()
+    plt.savefig(outdir+"histvol.png")
+    plt.close()
+
+graphvol()
 os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
