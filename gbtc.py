@@ -1,4 +1,4 @@
-import requests, re
+import requests, re, os, csv
 from lxml import html
 import datetime as dt
 import config
