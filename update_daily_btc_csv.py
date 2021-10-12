@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 dirname = config.dirname
 remotedir = config.remotedir
 outdir = dirname + "/pics/"
-fileout = dirname + "/BTC-USD.csv"
+fileout = dirname + "/vol/BTC-USD.csv"
 
 def update_csv(dirname, fileout):
     filein = dirname + "/BTC-PERPETUAL.csv"
@@ -61,7 +61,7 @@ def graph_vol(df, bar):
     ax1.set_ylabel("annualized monthly rolling %day bar volatility" % bar)
     ax2.plot(df['Date'], np.log10(df['Close']), label="BTC", color="blue")
     ax2.set_ylabel("BTC log10 price")
-    plt.title("BTC Log Price and Volatility")
+    plt.title("BTC Log Price and Volatility\nUpdated: %s" % str(df['Date'].iloc[-1])[:10])
     ax1.legend(loc="upper left")
     ax2.legend(loc="upper right")
     lr = df['logret'].dropna()
@@ -70,7 +70,7 @@ def graph_vol(df, bar):
     plt.close()
 
 def run_backtest(df):
-    bars = [1, 2, 7, 14, 30, 91, 182]
+    bars = [1, 2, 7, 14, 30, 91, 182, 365]
     sigmas = [0.6, 0.7, 0.8, 0.9, 1., 1.1]
     res = {}
     rescall = {}
@@ -92,26 +92,26 @@ def run_backtest(df):
             res[b][sigma] = pnlc-pnlp -p-c
     for b in bars:
         for sigma in sigmas:
-            plt.plot(df['Date'], np.cumsum(res[b][sigma]), label="vol=%.f%%" % (sigma*100))
+            plt.plot(df['Date'], np.cumsum(res[b][sigma])/np.arange(len(res[b][sigma]))*365./b, label="vol=%.f%%" % (sigma*100))
         plt.legend()
-        plt.title("cum pnl for %d days butterfly" % b)
+        plt.title("mean annual pnl for %d days butterfly\nUpdated: %s" % (b,str(df['Date'].iloc[-1])[:10]))
         plt.savefig("%sbuterfly-pnl-%dbar.png" % (outdir, b))
         plt.close()
         for sigma in sigmas:
-            plt.plot(df['Date'], np.cumsum(resput[b][sigma]), label="vol=%.f%%" % (sigma*100))
+            plt.plot(df['Date'], np.cumsum(resput[b][sigma])/np.arange(len(res[b][sigma]))*365./b, label="vol=%.f%%" % (sigma*100))
         plt.legend()
-        plt.title("cum pnl for %d days put" % b)
+        plt.title("mean annual pnl for %d days put\nUpdated: %s" % (b, str(df['Date'].iloc[-1])[:10]))
         plt.savefig("%sput-pnl-%dbar.png" % (outdir, b))
         plt.close()
         for sigma in sigmas:
-            plt.plot(df['Date'], np.cumsum(rescall[b][sigma]), label="vol=.%f%%" % (sigma*100))
+            plt.plot(df['Date'], np.cumsum(rescall[b][sigma])/np.arange(len(res[b][sigma]))*365./b, label="vol=%.f%%" % (sigma*100))
         plt.legend()
-        plt.title("cum pnl for %d days call" % b)
+        plt.title("mean annual pnl for %d days call\nUpdated: %s" % (b, str(df['Date'].iloc[-1])[:10]))
         plt.savefig("%scall-pnl-%dbar.png" % (outdir, b))
         plt.close()
     return res
 
-#update_csv(dirname, fileout)
+update_csv(dirname, fileout)
 df = get_csv(fileout)
 run_backtest(df)
 graph_vol(df, 1)

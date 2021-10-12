@@ -84,7 +84,7 @@ def graphviz(dirname):
     plt.gcf().autofmt_xdate()
     ax1.legend(loc="upper left")
     ax2.legend(loc="upper right")
-    plt.title("Greyscale BTC Discount\nlast updated: %s" % str(np.max(df['dt'])))
+    plt.title("Greyscale BTC Discount\ndisc=%.1f%% last updated: %s" % (df.iloc[-1]['disc']*-100, str(np.max(df['dt']))))
     plt.savefig("%s/pics/%s" % (dirname, 'gbtcdiscount.png'))
     plt.close(fig)
 

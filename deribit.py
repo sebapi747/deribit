@@ -24,7 +24,7 @@ def sendMail(msg):
               "text": msg})
 
 tickers = ["BTC", "ETH"]
-suffix = ["-25JUN21", "-PERPETUAL", "-24SEP21", "-31DEC21", "-25MAR22", "-28MAY21"]
+suffix = ["-PERPETUAL", "-24SEP21", "-31DEC21", "-25MAR22", "-24JUN22", "-30SEP22"]
 for t in tickers:
     for s in suffix:
         ticker = t + s
