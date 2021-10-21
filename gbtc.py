@@ -64,8 +64,8 @@ def getquotes():
             if fileexists == False:
                 w.writerow(dic.keys())
             w.writerow(dic.values())
-        if discount<-0.2:
-            msg = ("ALERT-%s: %s disc=%.2f%%" % (str(dt.datetime.utcnow()), ticker,discount))
+        if discount>-0.08 or discount<-0.2:
+            msg = ("%s: %s disc=%.2f%% gbtc=%.2f btc=%.0f" % (str(dt.datetime.utcnow()), ticker,discount, quote, btcquote))
             sendSMS(msg)
             sendMail(msg)
     else:
