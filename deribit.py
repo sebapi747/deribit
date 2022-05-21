@@ -24,7 +24,7 @@ def sendMail(msg):
               "text": msg})
 
 tickers = ["BTC", "ETH"]
-suffix = ["-PERPETUAL", "-24SEP21", "-31DEC21", "-25MAR22", "-24JUN22", "-30SEP22"]
+suffix = ["-PERPETUAL", "-24JUN22", "-30SEP22", "-30DEC22", "-31MAR23"]
 for t in tickers:
     for s in suffix:
         ticker = t + s
@@ -45,7 +45,7 @@ for t in tickers:
             if s!="-PERPETUAL":
                 continue
             relSpd = dic['best_bid_price']/dic['estimated_delivery_price']
-            if relSpd<0.97:
+            if relSpd<0.97 or relSpd>1.14:
                 msg = ("ALERT-%s: %s spd=%.2f%%" % (str(dt.datetime.utcnow()), t,relSpd))
                 sendSMS(msg)
                 sendMail(msg)

@@ -1,4 +1,4 @@
-import requests, re, os, csv
+import requests, re, os, csv, time
 from lxml import html
 import datetime as dt
 import numpy as np
@@ -38,21 +38,26 @@ def sendMail(msg):
               "text": msg})
 
 def getquotes():
+    headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
     ticker = "BTC-USD"
-    x = requests.get('https://finance.yahoo.com/quote/%s' % ticker)
+    x = requests.get('https://finance.yahoo.com/quote/%s' % ticker, headers=headers)
     print(x.status_code)
     parsed_body = html.fromstring(x.text)
-    quote = float(parsed_body.xpath('//div/span[@data-reactid=32]/text()')[0].replace(",",""))
-    hr = parsed_body.xpath('//div/span[@data-reactid=35]/text()')[0]
+    # was 32 and 35
+    #quote = float(parsed_body.xpath('//div/fin-streamer[@data-reactid=29]/text()')[0].replace(",",""))
+    #hr = parsed_body.xpath('//div/span[@data-reactid=36]/text()')[0]
+    quote = float(parsed_body.xpath('//div/fin-streamer[@data-symbol="%s"]/text()' % ticker)[0].replace(",",""))
+    hr = parsed_body.xpath('//div[@id="quote-market-notice"]/span/text()')[0]
     ymdstr = str(dt.datetime.utcnow()) 
     btcquote=quote
     pershare=0.000943533*btcquote
+    time.sleep(1)
     ticker = "GBTC"
-    x = requests.get('https://finance.yahoo.com/quote/%s' % ticker)
+    x = requests.get('https://finance.yahoo.com/quote/%s' % ticker, headers=headers)
     print(x.status_code)
     parsed_body = html.fromstring(x.text)
-    quote = float(parsed_body.xpath('//div/span[@data-reactid=32]/text()')[0].replace(",",""))
-    hr = parsed_body.xpath('//div/span[@data-reactid=35]/text()')[0]
+    quote = float(parsed_body.xpath('//div/fin-streamer[@data-symbol="%s"]/text()' % ticker)[0].replace(",",""))
+    hr = parsed_body.xpath('//div[@id="quote-market-notice"]/span/text()')[0]
     ymdstr = str(dt.datetime.utcnow()) 
     discount = quote/pershare-1
     dic = {'quote':quote, 'dt':ymdstr, 'hr':hr, 'btc':btcquote, 'disc':discount}
@@ -64,10 +69,14 @@ def getquotes():
             if fileexists == False:
                 w.writerow(dic.keys())
             w.writerow(dic.values())
-        if discount>-0.08 or discount<-0.2:
-            msg = ("%s: %s disc=%.2f%% gbtc=%.2f btc=%.0f" % (str(dt.datetime.utcnow()), ticker,discount, quote, btcquote))
-            sendSMS(msg)
-            sendMail(msg)
+        if discount>-0.08 or discount<-0.24:
+            markerfile = "%s/%s.txt" % (dirname, ymdstr[:10])
+            if not os.path.isfile(markerfile):
+                msg = ("%s: %s disc=%.0f%% gbtc=%.2f theo=%.2f btc=%.0f" % (str(dt.datetime.utcnow()), ticker,discount*100, quote,pershare, btcquote))
+                sendSMS(msg)
+                sendMail(msg)
+                with open(markerfile, 'a') as f:
+                    f.writelines(["large premium or discount today."])
     else:
         print(dic)
 
