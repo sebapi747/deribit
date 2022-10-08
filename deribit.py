@@ -24,7 +24,7 @@ def sendMail(msg):
               "text": msg})
 
 tickers = ["BTC", "ETH"]
-suffix = ["-PERPETUAL", "-24JUN22", "-30SEP22", "-30DEC22", "-31MAR23"]
+suffix = ["-PERPETUAL", "-30DEC22", "-31MAR23", "-30JUN23", "-29SEP23"]
 for t in tickers:
     for s in suffix:
         ticker = t + s
@@ -37,11 +37,18 @@ for t in tickers:
             dic.pop('stats')
             filename =  "%s/%s.csv" % (dirname,ticker)
             fileexists = os.path.isfile(filename)
-            with open(filename, 'a') as f:
-                w = csv.writer(f)
-                if fileexists == False:
-                    w.writerow(dic.keys())
-                w.writerow(dic.values())
+            fields = list(dic.keys())
+            if fileexists:
+                f = open(filename, "r")
+                fields = f.readline().strip().split(",")
+                f.close()
+            else:
+                f = open(filename, "a")
+                f.write(",".join(fields))
+                f.close()
+            f = open(filename, "a")
+            f.write("\n"+",".join([str(dic.get(f)) for f in fields]))
+            f.close()
             if s!="-PERPETUAL":
                 continue
             relSpd = dic['best_bid_price']/dic['estimated_delivery_price']
