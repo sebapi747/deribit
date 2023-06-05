@@ -1,67 +1,56 @@
 import requests
+from lxml import html
 import datetime as dt
-import pandas as pd
-import time, os
-from pathlib import Path
-import sqlite3
-dbfile = "sql/ib.db"
+import urllib
+import pytz
+import re,csv,os
+outdir="csv"
 
-''' ---------------------------------------------------------------------------------------------
- SQLite utils
-'''
-class DBObj(object):
-    def __init__(self):
-        self.db = sqlite3.connect(dbfile)
-g = DBObj()
+def get_quote(symbol, tz):
+    headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
+    symburl = urllib.parse.quote(symbol)
+    url = "https://finance.yahoo.com/quote/%s?p=%s" % (symburl,symburl)
+    resp = requests.get(url,headers=headers)
+    print(resp.status_code, symbol)
+    tz    = pytz.timezone(tz)
+    tzutc = pytz.timezone("UTC")
+    tnyc  = dt.datetime.now(tz)
+    tutc  = tnyc.astimezone(tzutc)
+    parsed_body = html.fromstring(resp.text)
+    quote = float(parsed_body.xpath("//fin-streamer[@data-symbol='%s' and @data-field='regularMarketPrice']" % symbol)[0].text.replace(",",""))
+    date = parsed_body.xpath("//div[@id='quote-market-notice']/span")[0].text
+    if "Market open" in date:
+        time = re.sub(r'\. Market [a-z]+.$', '', re.sub(r'^As of[ \t]*', '', date))
+        return True, quote, tutc, tnyc, time
+    return False, -999, tutc, tnyc, ""
 
-def insert_df_to_table(df, tablename, cols):
-    df[cols].to_sql(name=tablename+'_tmp', con=g.db, if_exists='replace',index=False)
-    sql = 'insert or replace into '+tablename+' ('+','.join(cols)+') select '+','.join(cols)+' from '+tablename+'_tmp'
-    g.db.execute(sql)
-    g.db.commit()
-    g.db.execute('drop table '+tablename+'_tmp')
+def save_to_csv(symbol, tz):
+    opened, quote, tutc, tlocal, timestr = get_quote(symbol,tz)
+    if opened==False:
+        print("skipping %s closed" % symbol)
+        return
+    dic = {"quote":quote, "tutc":tutc,"tlocal":tlocal,"timestr":timestr}
+    filename =  "%s/%s.csv" % (outdir,symbol)
+    fileexists = os.path.isfile(filename)
+    with open(filename, 'a') as f:
+        w = csv.writer(f)
+        if fileexists == False:
+            w.writerow(dic.keys())
+        w.writerow(dic.values())
 
-
-strdate = str(dt.datetime.utcnow())[0:10]
-dirname = "data/%s/yahoo" % strdate
-Path(dirname).mkdir(parents=True, exist_ok=True)
-
-def ccyfile(ccy):
-	return "%s/%s.csv" % (dirname, ccy)
-
-def insertfx(ccy):
-    filename = ccyfile(ccy)
-    df = pd.read_csv(filename)
-    df.rename(columns = {'Date':'dt', 'Close': 'spot'}, inplace = True)
-    df['ccy'] = ccy
-    print("INFO: inserting %d rows in %s fx table" % (len(df),ccy))
-    insert_df_to_table(df, "fx", ["ccy","dt","spot"])
-
-def insertallfx():
-    ccydf = pd.read_csv("ccylist.csv")
-    for ccy in ccydf['ccy']:
-        if os.path.isfile(ccyfile(ccy))==False:
-            continue
-        insertfx(ccy)
-
-def getfxdata():
-    ccydf = pd.read_csv("ccylist.csv")
-    for ccy in ccydf['ccy']:
-        filename = ccyfile(ccy)
-        if ccy=="USD" or os.path.isfile(filename):
-            continue
-        headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
-        timestamp = int(dt.datetime.now().timestamp()-60*16) # 16 minutes ago
-        tstart = 1070236800-60*60*24*365*20
-        query = "https://query1.finance.yahoo.com/v7/finance/download/%sUSD=X?period1=%d&period2=%d&interval=1mo&events=history&includeAdjustedClose=true" % (ccy, tstart, timestamp)
-        x = requests.get(query, headers=headers)
-        print(ccy, x.status_code, filename)
-        file = open(filename,"w") 
-        file.write(x.text)
-        file.close()
-        insertfx(ccy)
-        time.sleep(0.5)
+def update_all_csv():
+    symdic = {"BTC-USD":"UTC",
+              "EURUSD=X":"Europe/London",
+              "AUDUSD=X":"Europe/London",
+              "JPY=X": "Europe/London",
+             "ZF=F": "America/New_York",
+             "HG=F": "America/New_York",
+             "GC=F": "America/New_York",
+             "NQ=F": "America/New_York",
+             "ES=F": "America/New_York",
+             "CL=F": "America/New_York"}
+    for symbol,tz in symdic.items():
+        save_to_csv(symbol,tz)
         
 if __name__ == "__main__":
-    getfxdata()
-    insertallfx()
+    update_all_csv()
