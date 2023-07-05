@@ -37,6 +37,11 @@ def sendMail(msg):
               "subject": msg,
               "text": msg})
 
+def sendTelegram(text):
+    params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'HTML'}
+    resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
+    resp.raise_for_status()
+
 def getquotes():
     headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
     ticker = "BTC-USD"
@@ -73,8 +78,9 @@ def getquotes():
             markerfile = "%s/%s.txt" % (dirname, ymdstr[:10])
             if not os.path.isfile(markerfile):
                 msg = ("%s: %s disc=%.0f%% gbtc=%.2f theo=%.2f btc=%.0f" % (str(dt.datetime.utcnow()), ticker,discount*100, quote,pershare, btcquote))
-                sendSMS(msg)
-                sendMail(msg)
+                #sendSMS(msg)
+                #sendMail(msg)
+                sendTelegram(msg)
                 with open(markerfile, 'a') as f:
                     f.writelines(["large premium or discount today."])
     else:

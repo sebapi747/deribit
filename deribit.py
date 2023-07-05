@@ -23,8 +23,13 @@ def sendMail(msg):
               "subject": msg,
               "text": msg})
 
+def sendTelegram(text):
+    params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'HTML'}
+    resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
+    resp.raise_for_status()
+
 tickers = ["BTC", "ETH"]
-suffix = ["-PERPETUAL", "-30DEC22", "-31MAR23", "-30JUN23", "-29SEP23"]
+suffix = ["-PERPETUAL", "-31MAR23", "-30JUN23", "-29SEP23", "-29DEC23", "-29MAR24"]
 for t in tickers:
     for s in suffix:
         ticker = t + s
@@ -54,7 +59,7 @@ for t in tickers:
             relSpd = dic['best_bid_price']/dic['estimated_delivery_price']
             if relSpd<0.97 or relSpd>1.14:
                 msg = ("ALERT-%s: %s spd=%.2f%%" % (str(dt.datetime.utcnow()), t,relSpd))
-                sendSMS(msg)
+                sendTelegram(msg)
                 sendMail(msg)
         except:
             print("failure for %s" % ticker)

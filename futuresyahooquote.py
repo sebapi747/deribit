@@ -5,6 +5,7 @@ import urllib
 import pytz
 import re,csv,os
 outdir="csv"
+import config
 
 def get_quote(symbol, tz):
     headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
@@ -30,7 +31,7 @@ def save_to_csv(symbol, tz):
         print("skipping %s closed" % symbol)
         return
     dic = {"quote":quote, "tutc":tutc,"tlocal":tlocal,"timestr":timestr}
-    filename =  "%s/%s.csv" % (outdir,symbol)
+    filename =  "%s/futcsv/%s.csv" % (config.dirname,symbol)
     fileexists = os.path.isfile(filename)
     with open(filename, 'a') as f:
         w = csv.writer(f)
