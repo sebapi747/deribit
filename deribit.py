@@ -29,7 +29,7 @@ def sendTelegram(text):
     resp.raise_for_status()
 
 tickers = ["BTC", "ETH"]
-suffix = ["-PERPETUAL", "-31MAR23", "-30JUN23", "-29SEP23", "-29DEC23", "-29MAR24"]
+suffix = ["-PERPETUAL", "-29SEP23", "-29DEC23", "-29MAR24", "-28JUN24"]
 for t in tickers:
     for s in suffix:
         ticker = t + s
