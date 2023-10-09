@@ -1,0 +1,184 @@
+\documentclass[9pt]{beamer}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usetheme{boxes}
+%\useinnertheme{default}
+\useinnertheme{circles}
+\setbeamercolor*{titlelike}{parent=structure} % Used in Malmoe
+
+\addfootbox{title in head/foot}{%
+    \tiny\quad\insertsection%
+    \hfill%
+    \usebeamercolor[fg]{page number in head/foot}{%
+        \insertframenumber\,/\,\inserttotalframenumber%
+    }\tiny\quad}
+\setbeamercolor{page number in head/foot}{fg=black}
+
+\AtBeginSection[]
+{
+    \begin{frame}
+        \frametitle{Table of Contents}
+        \tableofcontents[currentsection]
+    \end{frame}
+}
+%----------------------------------------------------------------------------------------
+%   PRESENTATION INFORMATION
+%----------------------------------------------------------------------------------------
+\title[Intraday Future Returns]{Intraday Future Returns and Allocation} 
+\author[SH]{Sebastien}
+\date[\today]{\today} 
+
+%----------------------------------------------------------------------------------------
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%   TITLE SLIDE
+%----------------------------------------------------------------------------------------
+\begin{frame}
+    \titlepage 
+\end{frame}
+%----------------------------------------------------------------------------------------
+%   TABLE OF CONTENTS SLIDE
+%----------------------------------------------------------------------------------------
+\begin{frame}
+    \frametitle{Table of Contents} % Slide title, remove this command for no title
+    \tableofcontents % Output the table of contents (all sections on one slide)
+\end{frame}
+%----------------------------------------------------------------------------------------
+%   PRESENTATION BODY SLIDES
+%----------------------------------------------------------------------------------------
+%------------------------------------------------
+\section{Assets Quotes} 
+%------------------------------------------------
+\begin{frame}
+	\frametitle{Asset Intraday Quotes}
+    \begin{itemize}
+        \item crypto are 24/7 market
+        \item vol for gold future spiked on a friday
+    \end{itemize}
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+	    \includegraphics[scale=0.3]{pics/pdf/allfutquote.pdf}
+    \end{column}
+    \begin{column}{.5\textwidth}
+	    \includegraphics[scale=0.3]{pics/pdf/allfutvol.pdf}
+    \end{column}%
+    \end{columns}
+\end{frame}
+%------------------------------------------------
+\section{Strategy Metrics} 
+%------------------------------------------------
+%------------------------------------------------
+\begin{frame}
+    \frametitle{Sharpe by Strategy}
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-all-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-bollinger-strat.pdf}
+    \end{column}
+    \begin{column}{.5\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-sma-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-donchian-strat.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
+%------------------------------------------------
+\begin{frame}
+    \frametitle{Sharpe by Asset}
+    \begin{columns}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Aussie-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Copper-strat.pdf}
+    \end{column}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Crude-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Gold-strat.pdf}
+    \end{column}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Nasdaq-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Yen-strat.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
+%------------------------------------------------
+\begin{frame}
+    \frametitle{Sharpe by Asset}
+    \begin{columns}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Bitcoin-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-SP500-strat.pdf}
+    \end{column}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Euro-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-5YTreas-strat.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
+%------------------------------------------------
+\section{Returns by Asset} 
+%------------------------------------------------
+\input{"tables/strat_metrics_by_asset.tex"}
+%------------------------------------------------
+\section{Scaled Strategy Metrics} 
+%------------------------------------------------
+%------------------------------------------------
+\begin{frame}
+    \frametitle{Sharpe by Strategy}
+    \begin{columns}
+    \begin{column}{.5\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-all-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-bollinger-strat.pdf}
+    \end{column}
+    \begin{column}{.5\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-sma-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-donchian-strat.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
+%------------------------------------------------
+\begin{frame}
+    \frametitle{Sharpe by Asset}
+    \begin{columns}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-Aussie-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-Copper-strat.pdf}
+    \end{column}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-Crude-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-Gold-strat.pdf}
+    \end{column}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-Nasdaq-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-Yen-strat.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
+%------------------------------------------------
+\begin{frame}
+    \frametitle{Sharpe by Asset}
+    \begin{columns}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-Bitcoin-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-SP500-strat.pdf}
+    \end{column}
+    \begin{column}{.3\textwidth}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-Euro-strat.pdf}
+    \includegraphics[scale=0.25]{pics/pdf/sharpe-hist-Scaled-5YTreas-strat.pdf}
+    \end{column}
+    \end{columns}
+\end{frame}
+%------------------------------------------------
+\section{Returns by Scaled Asset} 
+%------------------------------------------------
+\input{"tables/strat_metrics_by_scaled_asset.tex"}
+%------------------------------------------------
+\section{Conclusion} 
+%------------------------------------------------
+\begin{frame}
+    \frametitle{Conclusions and Next Steps}
+    \begin{itemize}
+        \item conclusions...
+        \item Questions?
+    \end{itemize}
+\end{frame}
+\end{document} 
