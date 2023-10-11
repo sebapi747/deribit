@@ -41,6 +41,7 @@ def save_to_csv(symbol, tz):
 
 def update_all_csv():
     symdic = {"BTC-USD":"UTC",
+              "ETH-USD":"UTC",
               "EURUSD=X":"Europe/London",
               "AUDUSD=X":"Europe/London",
               "JPY=X": "Europe/London",
