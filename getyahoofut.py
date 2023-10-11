@@ -14,6 +14,9 @@ namemap = {"CL=F":"Crude", "ES=F":"SP500", "NQ=F":"Nasdaq",
            "JPY=X":"Yen","AUDUSD=X":"Aussie", "EURUSD=X":"Euro",
            "BTC-USD":"Bitcoin"}
 
+''' ------------------------------------------------------------------------
+    get data
+    '''
 def rsync_csv(remotecsvdir):
     os.system("rsync -auvzhe ssh %s ." % remotecsvdir)
            
@@ -82,6 +85,7 @@ def getdfbytick(dirname):
         dfbytick[ticker] = readcsv(dirname,f) 
     return dfbytick
 
+# write csv to pandasdirname
 def getallcsv():
     rsync_csv(remotecsvdir)
     dfbytick = getdfbytick(dirname)
@@ -90,6 +94,9 @@ def getallcsv():
         print("INFO:"+filename)
         df.to_csv(filename,index=False)
 
+''' -------------------------------------------------------
+     process the data, reading csv from pandasdirname
+     '''
 def readcsv_dfbytick(dirname):
     dfbytick = {}
     for fn in os.listdir(dirname):
@@ -141,6 +148,23 @@ def drawallquotesandvol(dfbytick,outplot):
     plt.savefig("tex/pics/pdf/"+"allfutvol.pdf")
     #plt.show()
     plt.close()
+    for ticker, df in dfbytick.items():
+        df = df.loc[df["tqutc"]>cutdate]
+        volscaled = df['lnquote'].diff()*0.1/df['vol'].shift(1)
+        q = np.cumsum(volscaled)
+        plt.plot(df["tqutc"],q, label=ticker)
+    plt.gcf().autofmt_xdate()
+    plt.ylabel("log quote")
+    lastdatestr = str(np.max(df["tqutc"]))[:10]
+    plt.title("All Scaled Quotes\nlast: %s" % lastdatestr)
+    fri,sun = getfrisun(df)
+    for i in range(len(fri)):
+        plt.axvspan(fri[i], sun[i], color="grey", alpha=0.5)
+    plt.legend()
+    plt.savefig(outplot+"allscaledfutquote.png")
+    plt.savefig("tex/pics/pdf/"+"allscaledfutquote.pdf")
+    #plt.show()
+    plt.close()
 
 def maxdrawdown(cumret):
     rollingmax = cumret.cummax()
@@ -188,42 +212,45 @@ def strat_label_str(a, m):
     label = "%s r=%.1f%% v=%.0f%%, s=%.2f c=%.2f" % (a,m['r'][a]*100,m['vol'][a]*100,m['sharpe'][a],m['calmar'][a])
     return label
 
-def show_strat_pnl(logret,weight, ma50, ma200, a, b, graphics):
+# compute_logret_metrics and show pnl
+# graphics: N:no interactive display, I: interactive, D:disregard (no graphics)
+def show_strat_pnl(logret,weight, ma50, ma200, a, b, graphics,csvdir):
     #show_signal(weight, b)
     lr        = logret[[a]].copy()
     lr[b]     = np.log(1+(np.exp(logret[a])-1)*weight[a])
     cumret    = lr.cumsum()
     m         = compute_logret_metrics(lr,[a,b])
-    plt.plot(cumret[a], color="blue", linewidth=0.3, label=strat_label_str(a,m))
-    plt.plot(ma50, "-", color="red", linewidth=0.4)
-    plt.plot(ma200, "-", color="green", linewidth=0.4)
-    plt.plot(cumret[b], color="orange", label=strat_label_str(b,m))
-    d = weight[a].diff()
-    isdigital = len(d.loc[(d.isna()==False) &(d!=1) & (d!=-1) & (d!=0)])==0
-    fri,sun = getfrisun(logret.reset_index())
-    for i in range(len(fri)):
-        plt.axvspan(fri[i], sun[i], color="grey", alpha=0.5)
-    if isdigital:
-        buy  = d.loc[d==1].index
-        sell = d.loc[d==-1].index
-        yr   = (cumret.index[-1]-cumret.index[0]).total_seconds()/3600/24/365.25
-        riskonpct = np.sum(weight)/len(weight)
-        plt.plot(cumret[a][buy], linewidth=0, markersize=5, marker="o", color="green", label="buy %.1f signal per yr, risk-on=%.0f%%" % (len(buy)/yr,riskonpct*100))
-        plt.plot(cumret[a][sell], linewidth=0, markersize=5, marker="o", color="red", label="sell %.1f signal per yr, risk-off=%.0f%%" % (len(sell)/yr,(1-riskonpct)*100))
-    plt.gcf().autofmt_xdate()
-    plt.title("pnl %s" % b)
-    plt.legend()
-    plt.ylabel("cumulative return")
-    plt.savefig("tex/pics/pdf/signalpnl_%s.pdf" % re.sub(r"[()=+]", "_", b).replace(" ","-"))
-    if graphics=='I':
-        plt.show()
-    plt.close()
-    m.to_csv("tex/csv/signalmetrics_%s.csv" % re.sub(r"[()=+]", "_", b).replace(" ","-"), index=True, index_label="desc")
+    if graphics!="D":
+        plt.plot(cumret[a], color="blue", linewidth=0.3, label=strat_label_str(a,m))
+        plt.plot(ma50, "-", color="red", linewidth=0.4)
+        plt.plot(ma200, "-", color="green", linewidth=0.4)
+        plt.plot(cumret[b], color="orange", label=strat_label_str(b,m))
+        d = weight[a].diff()
+        isdigital = len(d.loc[(d.isna()==False) &(d!=1) & (d!=-1) & (d!=0)])==0
+        fri,sun = getfrisun(logret.reset_index())
+        for i in range(len(fri)):
+            plt.axvspan(fri[i], sun[i], color="grey", alpha=0.5)
+        if isdigital:
+            buy  = d.loc[d==1].index
+            sell = d.loc[d==-1].index
+            yr   = (cumret.index[-1]-cumret.index[0]).total_seconds()/3600/24/365.25
+            riskonpct = np.sum(weight)/len(weight)
+            plt.plot(cumret[a][buy], linewidth=0, markersize=5, marker="o", color="green", label="buy %.1f signal per yr, risk-on=%.0f%%" % (len(buy)/yr,riskonpct*100))
+            plt.plot(cumret[a][sell], linewidth=0, markersize=5, marker="o", color="red", label="sell %.1f signal per yr, risk-off=%.0f%%" % (len(sell)/yr,(1-riskonpct)*100))
+        plt.gcf().autofmt_xdate()
+        plt.title("pnl %s" % b)
+        plt.legend()
+        plt.ylabel("cumulative return")
+        plt.savefig("tex/pics/pdf/signalpnl_%s.pdf" % re.sub(r"[()=+]", "_", b).replace(" ","-"))
+        if graphics=='I':
+            plt.show()
+        plt.close()
+    m.to_csv(csvdir+"/signalmetrics_%s.csv" % re.sub(r"[()=+]", "_", b).replace(" ","-"), index=True, index_label="desc")
     
 ''' --------------------------------------------------------------------------------------
     compute sma or donchian weights
 '''
-def sma_weight(logret,a,shortwin,longwin,graphics,isbull):
+def sma_weight(logret,a,shortwin,longwin,graphics,isbull,csvdir):
     cumret     = np.cumsum(logret[a])
     ma200      = cumret.rolling(longwin).mean()
     ma50       = cumret.rolling(shortwin).mean()
@@ -236,10 +263,10 @@ def sma_weight(logret,a,shortwin,longwin,graphics,isbull):
     weight[a] = weight[a].shift()
     if graphics:
         b = "%s sma %s %d %d" % (a, "bull" if isbull else "bear",shortwin,longwin)
-        show_strat_pnl(logret[[a]],weight[[a]],ma50, ma200, a, b, graphics)
+        show_strat_pnl(logret[[a]],weight[[a]],ma50, ma200, a, b, graphics,csvdir)
     return weight[a]
 
-def donchian_weight(logret,a,donchianlen,graphics,isbull):
+def donchian_weight(logret,a,donchianlen,graphics,isbull,csvdir):
     cumret = np.cumsum(logret[a])
     cumretdonchianmin = cumret.rolling(donchianlen).min()
     cumretdonchianmax = cumret.rolling(donchianlen).max()
@@ -250,10 +277,10 @@ def donchian_weight(logret,a,donchianlen,graphics,isbull):
     weight[a] = weight[a].shift()
     if graphics:
         b= "%s donchian %s %d" %(a,"bull" if isbull else "bear",donchianlen)
-        show_strat_pnl(logret[[a]],weight[[a]], cumretdonchianmin, cumretdonchianmax, a, b, graphics)
+        show_strat_pnl(logret[[a]],weight[[a]], cumretdonchianmin, cumretdonchianmax, a, b, graphics,csvdir)
     return weight[a]
 
-def bollinger_weight(logret,a,window,graphics,isbull):
+def bollinger_weight(logret,a,window,graphics,isbull,csvdir):
     cumret = np.cumsum(logret[a])
     mme = cumret.rolling(window).mean()
     msd = (cumret-mme).rolling(window).std()
@@ -266,38 +293,80 @@ def bollinger_weight(logret,a,window,graphics,isbull):
     weight[a] = weight[a].shift()
     if graphics:
         b= "%s bollinger %s %d" %(a,"bull" if isbull else "bear",window)
-        show_strat_pnl(logret[[a]],weight[[a]], bdown, bup, a, b, graphics)
+        show_strat_pnl(logret[[a]],weight[[a]], bdown, bup, a, b, graphics,csvdir)
     return weight[a]
 
-def allstrat(logret,a):
+def allstrat(logret,a,csvdir,graphics):
     print("INFO: processing:", a)
     donchianlen = 200
     shortwin = 50
     longwin = 200
-    w = sma_weight(logret,a,shortwin=shortwin,longwin=longwin,graphics='N',isbull=True)
-    w = sma_weight(logret,a,shortwin=shortwin,longwin=longwin,graphics='N',isbull=False)
-    w = donchian_weight(logret,a,donchianlen=donchianlen,graphics='N',isbull=True)
-    w = donchian_weight(logret,a,donchianlen=donchianlen,graphics='N',isbull=False)
-    w = bollinger_weight(logret,a,window=200,graphics='N',isbull=True)
-    w = bollinger_weight(logret,a,window=200,graphics='N',isbull=False)
+    w = sma_weight(logret,a,shortwin=shortwin,longwin=longwin,graphics=graphics,isbull=True,csvdir=csvdir)
+    w = sma_weight(logret,a,shortwin=shortwin,longwin=longwin,graphics=graphics,isbull=False,csvdir=csvdir)
+    w = donchian_weight(logret,a,donchianlen=donchianlen,graphics=graphics,isbull=True,csvdir=csvdir)
+    w = donchian_weight(logret,a,donchianlen=donchianlen,graphics=graphics,isbull=False,csvdir=csvdir)
+    w = bollinger_weight(logret,a,window=200,graphics=graphics,isbull=True,csvdir=csvdir)
+    w = bollinger_weight(logret,a,window=200,graphics=graphics,isbull=False,csvdir=csvdir)
     
 def generate_graphs_and_metrics_csv(dfbytick):
     print("INFO:generate_graphs_and_metrics_csv")
-    os.system("rm tex/csv/*.csv")
+    csvdir = "tex/csv"
+    os.system("rm %s/*.csv" % csvdir)
     for k,df in dfbytick.items():
         logret = pd.DataFrame(data={k:df['lnquote'].diff().array},index=df['tqutc'])
         volscaled = df['lnquote'].diff()*0.1/df['vol'].shift(1)
         scaled = pd.DataFrame(data={'Scaled '+k:volscaled.array},index=df['tqutc'])
-        allstrat(logret,k)
-        allstrat(scaled.dropna(),'Scaled '+k)
+        allstrat(logret,k,csvdir,graphics='N')
+        allstrat(scaled.dropna(),'Scaled '+k,csvdir,graphics='N')
 
+def read_csv_metrics(csvdir):
+    mlist = []
+    for f in sorted(os.listdir(csvdir)):
+        mlist.append(pd.read_csv("%s/%s" % (csvdir,f)))
+    metrics = pd.concat(mlist).drop_duplicates("desc").set_index("desc")
+    return metrics
+    
+def generate_week_metrics_csv(dfbytick):
+    print("INFO:generate_week_metrics_csv")
+    csvdir = "tex/csv2"
+    os.system("mkdir -p "+csvdir)
+    os.system("rm %s/*.csv" % csvdir)
+    for k,df in dfbytick.items():
+        fri,sun = getfrisun(df)
+        for i in range(len(fri)):
+            if i==0:
+                continue
+            wdf = df.loc[(df.tqutc>sun[i-1]) & (df.tqutc<fri[i])]
+            a = k+" %s" % str(sun[i-1])[:10]
+            logret = pd.DataFrame(data={a:wdf['lnquote'].diff().array},index=wdf['tqutc'])
+            volscaled = wdf['lnquote'].diff()*0.1/wdf['vol'].shift(1)
+            scaled = pd.DataFrame(data={'Scaled '+a:volscaled.array},index=wdf['tqutc'])
+            allstrat(logret,a,csvdir,graphics="D")
+            allstrat(scaled.dropna(),'Scaled '+a,csvdir,graphics="D")
+    metrics = read_csv_metrics(csvdir)
+    metrics['scaled'] = ""
+    metrics['asset'] = ""
+    metrics['week'] = ""
+    metrics['strat'] = ""
+    for s in metrics.index:
+        offset = 0
+        if s[:6]=="Scaled":
+            metrics.loc[s,'scaled'] = "scaled"
+            offset = 7
+        asset = re.sub(r" [^ ].*",r"",s[offset:])
+        offset += len(asset)+1
+        d = s[offset:(offset+10)]
+        r = s[(offset+11):]
+        metrics.loc[s,'asset'] = asset
+        metrics.loc[s,'week'] = d
+        metrics.loc[s,'strat'] = r
+    metrics = metrics.sort_values(by=["scaled","asset","strat","week"])
+    return metrics
+        
 def read_metrics_csv_generate_tex():
     print("INFO:read_metrics_csv_generate_tex")
     texcsvdir = "tex/csv"
-    mlist = []
-    for f in sorted(os.listdir(texcsvdir)):
-        mlist.append(pd.read_csv("%s/%s" % (texcsvdir,f)))
-    metrics = pd.concat(mlist).drop_duplicates("desc").set_index("desc")
+    metrics = read_csv_metrics(texcsvdir)
     metrics.to_latex("tex/tables/signal_metrics.tex")
     for k,v in namemap.items():
         asset = re.sub(" .*","",v.replace("5Y Treas","5YTreas"))
@@ -404,6 +473,9 @@ def getdata_generate_tex():
     os.chdir("tex")
     os.system("pdflatex futintra.tex")
     os.system("pdflatex futintra.tex")
+    generate_week_metrics_csv(dfbytick).to_csv("byweek.csv")
 
 if __name__ == "__main__":
-    getdata_generate_tex()
+    dfbytick = readcsv_dfbytick(pandasdirname)
+    generate_week_metrics_csv(dfbytick).to_csv("byweek.csv")
+    #getdata_generate_tex()
