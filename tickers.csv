@@ -28,7 +28,7 @@ CC=F,Cocoa,soft,America/New_York
 KC=F,Coffee,soft,America/New_York
 KE=F,KCWheat,soft,America/New_York
 ZW=F,ChicagoWheat,soft,America/New_York
-LBS=F,RLLumber,soft,America/New_York
+LBR=F,RLLumber,soft,America/New_York
 CAD=X,CAD,fx,Europe/London
 CHF=X,Swiss,fx,Europe/London
 DOT-USD,Polkadot,crypto,UTC
