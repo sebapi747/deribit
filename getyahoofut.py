@@ -12,7 +12,7 @@ outplot = "pics/"
 namemap = {"CL=F":"Crude", "ES=F":"SP500", "NQ=F":"Nasdaq",
            "GC=F":"Gold","HG=F":"Copper","ZF=F":"5YTreas",
            "JPY=X":"Yen","AUDUSD=X":"Aussie", "EURUSD=X":"Euro",
-           "BTC-USD":"Bitcoin"}
+           "BTC-USD":"Bitcoin","ETH-USD":"Ethereum"}
 
 ''' ------------------------------------------------------------------------
     get data
@@ -21,7 +21,7 @@ def rsync_csv(remotecsvdir):
     os.system("rsync -auvzhe ssh %s ." % remotecsvdir)
            
 def correct_tqutc(f,df):
-    tzmap = {"EDT": "America/New_York", "BST": "Europe/London", "UTC": "UTC"}
+    tzmap = {"EDT": "America/New_York", "BST": "Europe/London", "UTC": "UTC", "GMT":"Europe/London"}
     datequotes = []
     lasttimestr =""
     cutdate = dt.datetime(2023,6,29).astimezone(pytz.UTC)
@@ -473,9 +473,9 @@ def getdata_generate_tex():
     os.chdir("tex")
     os.system("pdflatex futintra.tex")
     os.system("pdflatex futintra.tex")
-    generate_week_metrics_csv(dfbytick).to_csv("byweek.csv")
+    generate_week_metrics_csv(dfbytick).to_csv("tex/byweek.csv")
 
 if __name__ == "__main__":
-    dfbytick = readcsv_dfbytick(pandasdirname)
-    generate_week_metrics_csv(dfbytick).to_csv("byweek.csv")
-    #getdata_generate_tex()
+    #dfbytick = readcsv_dfbytick(pandasdirname)
+    #generate_week_metrics_csv(dfbytick).to_csv("byweek.csv")
+    getdata_generate_tex()
