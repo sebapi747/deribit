@@ -9,10 +9,10 @@ remotecsvdir = "sebapi747@ssh.pythonanywhere.com:/home/sebapi747/marko/static/pi
 dirname = "futcsv/"
 pandasdirname = "futpandas/"
 outplot = "pics/"
-namemap = {"CL=F":"Crude", "ES=F":"SP500", "NQ=F":"Nasdaq",
-           "GC=F":"Gold","HG=F":"Copper","ZF=F":"5YTreas",
-           "JPY=X":"Yen","AUDUSD=X":"Aussie", "EURUSD=X":"Euro",
-           "BTC-USD":"Bitcoin","ETH-USD":"Ethereum"}
+tickers = pd.read_csv("tickers.csv").sort_values(["category","desc"])
+namemap = {}
+for i,r in tickers.iterrows():
+    namemap[r["ticker"]] = r["desc"]
 
 ''' ------------------------------------------------------------------------
     get data
