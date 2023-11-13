@@ -4,6 +4,7 @@ import datetime as dt
 import urllib
 import pytz
 import re,csv,os
+import pandas as pd
 outdir="csv"
 import config
 
@@ -40,17 +41,10 @@ def save_to_csv(symbol, tz):
         w.writerow(dic.values())
 
 def update_all_csv():
-    symdic = {"BTC-USD":"UTC",
-              "ETH-USD":"UTC",
-              "EURUSD=X":"Europe/London",
-              "AUDUSD=X":"Europe/London",
-              "JPY=X": "Europe/London",
-             "ZF=F": "America/New_York",
-             "HG=F": "America/New_York",
-             "GC=F": "America/New_York",
-             "NQ=F": "America/New_York",
-             "ES=F": "America/New_York",
-             "CL=F": "America/New_York"}
+    tickers = pd.read_csv("tickers.csv")
+    symdic = {}
+    for i,r in tickers.iterrows():
+        symdic[r["ticker"]] = r["tz"]
     for symbol,tz in symdic.items():
         save_to_csv(symbol,tz)
         
