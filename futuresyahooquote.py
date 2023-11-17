@@ -40,8 +40,8 @@ def save_to_csv(symbol, tz):
             w.writerow(dic.keys())
         w.writerow(dic.values())
 
-def update_all_csv():
-    tickers = pd.read_csv("tickers.csv")
+def update_all_csv(dirname):
+    tickers = pd.read_csv("%s/tickers.csv" % dirname)
     symdic = {}
     for i,r in tickers.iterrows():
         symdic[r["ticker"]] = r["tz"]
@@ -49,4 +49,4 @@ def update_all_csv():
         save_to_csv(symbol,tz)
         
 if __name__ == "__main__":
-    update_all_csv()
+    update_all_csv(os.path.dirname(__file__))
