@@ -29,8 +29,16 @@ def sendTelegram(text):
     resp.raise_for_status()
 
 tickers = ["BTC", "ETH"]
-suffix = ["-PERPETUAL", "-29DEC23", "-29MAR24", "-28JUN24", "-27SEP24"]
+#suffix = ["-PERPETUAL", "-29DEC23", "-29MAR24", "-28JUN24", "-27SEP24"]
 for t in tickers:
+    url = "https://www.deribit.com/api/v2/public/get_instruments?currency=%s&expired=false&kind=future" % t
+    headers = {'Content-Type': 'application/json'}
+    resp = requests.get(url,headers=headers)
+    print(resp.status_code)
+    suffix = []
+    for ins in resp.json()['result']:
+        suffix.append(ins['instrument_name'][3:])
+    suffix = ["-PERPETUAL"]+suffix[-5:-1]
     for s in suffix:
         ticker = t + s
         try:
