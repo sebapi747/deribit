@@ -30,8 +30,7 @@ def sendTelegram(text):
 
 def firstnextmonth(date):
     mt = dtnow.month+1
-    yr = dtnow.year
-    yr = yr+mt//12
+    yr = dtnow.year+mt//12
     return dt.datetime(yr,1+(mt-1)%12,1)
 
 def monthend(date):
@@ -47,6 +46,7 @@ def isAfterImm(date):
     return isImmMonth(date) and (date.weekday()+3)%7+daysToMonthEnd(date)<7
 
 def list_suffix(dtnow):
+    dtnow = dtnow - dt.timedelta(hours=16,seconds=1)
     futdates = []
     for futm in [3,6,9,12]:
         yr = dtnow.year
@@ -65,7 +65,7 @@ def list_suffix(dtnow):
     return ["-PERPETUAL"] + [d.strftime("-%d%b%y").upper() for d in sorted(futdates)]
 
 tickers = ["BTC", "ETH"]
-suffix = list_suffix(dt.datetime.now())
+suffix = list_suffix(dt.datetime.utcnow())
 
 for t in tickers:
     for s in suffix:
