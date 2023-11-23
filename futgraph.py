@@ -10,6 +10,11 @@ remotedir = config.remotedir
 dirname = config.dirname
 outdir = dirname + "/pics/"
 
+def sendTelegram(text):
+    params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'HTML'}
+    resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
+    resp.raise_for_status()
+    
 dirs = os.listdir( dirname )
 #
 # Price
@@ -49,7 +54,7 @@ for ticker in ['BTC', 'ETH']:
         if d == "PERPETU":
             d = now
         else:
-            d = dt.datetime.strptime(d,'%d%b%y')
+            d = dt.datetime.strptime(d,'%d%b%y')+dt.timedelta(hours=16)
         files[ticker][d] = f
 
 for ticker in ['BTC', 'ETH']:
@@ -105,6 +110,9 @@ for ticker in ['BTC', 'ETH']:
         df = pd.read_csv(f)
         timestamp, state, bestbid, estimated_delivery_price = df.iloc[-1][['timestamp','state', 'best_bid_price', 'estimated_delivery_price']]
         if state=='closed':
+            continue
+        if k<now:
+            sendTelegram("found fut file with non closed data: %s %s %s" % (f, str(k)[:14], str(now)[:14]))
             continue
         times.append((k-now).total_seconds()/3600./24./365.)
         bestbids.append(bestbid)
