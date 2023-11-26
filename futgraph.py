@@ -11,7 +11,8 @@ dirname = config.dirname
 outdir = dirname + "/pics/"
 
 def sendTelegram(text):
-    params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'HTML'}
+    prefix = os.uname()[1] + __file__ + ":"
+    params = {'chat_id': config.telegramchatid, 'text': prefix+text, 'parse_mode': 'HTML'}
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
     
@@ -112,7 +113,8 @@ for ticker in ['BTC', 'ETH']:
         if state=='closed':
             continue
         if k<now:
-            sendTelegram("found fut file with non closed data: %s %s %s" % (f, str(k)[:14], str(now)[:14]))
+            #sendTelegram("found fut file with non closed data: %s %s %s" % (f, str(k)[:14], str(now)[:14]))
+            # actually happened on 30DEC22 files
             continue
         times.append((k-now).total_seconds()/3600./24./365.)
         bestbids.append(bestbid)
