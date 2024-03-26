@@ -28,7 +28,7 @@ def sendTelegram(text):
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
 
-def firstnextmonth(date):
+def firstnextmonth(dtnow):
     mt = dtnow.month+1
     yr = dtnow.year+mt//12
     return dt.datetime(yr,1+(mt-1)%12,1)
