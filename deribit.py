@@ -23,6 +23,15 @@ def sendMail(msg):
               "subject": msg,
               "text": msg})
 
+def markertoday(filename):
+    recentfileexists = True if os.path.exists(filename) and (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600/24.<1 else False
+    if recentfileexists:
+        return True
+    f = open(filename, "w")
+    f.write(".")
+    f.close()
+    return False
+        
 def sendTelegram(text):
     params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'HTML'}
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
@@ -95,7 +104,7 @@ for t in tickers:
             if relSpd<0.97 or relSpd>1.13:
                 msg = os.uname()[1]+":"+__file__+":ALERT-%s: %s%s %.0f %.0f spd=%.2f%%" % (str(dt.datetime.utcnow()), t,s,dic['best_bid_price'],dic['estimated_delivery_price'], (relSpd-1)*100)
                 sendTelegram(msg)
-                if relSpd<0.97 or relSpd>1.16:
+                if not markertoday("deribit-future-contango.marker"):
                     sendMail(msg)
             if s!="-PERPETUAL":
                 continue
