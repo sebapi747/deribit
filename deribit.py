@@ -93,9 +93,10 @@ for t in tickers:
             f.close()
             relSpd = dic['best_bid_price']/dic['estimated_delivery_price']
             if relSpd<0.97 or relSpd>1.13:
-                msg = os.uname()[1]+__file__+":ALERT-%s: %s%s %.0f %.0f spd=%.2f%%" % (str(dt.datetime.utcnow()), t,s,dic['best_bid_price'],dic['estimated_delivery_price'], (relSpd-1)*100)
+                msg = os.uname()[1]+":"+__file__+":ALERT-%s: %s%s %.0f %.0f spd=%.2f%%" % (str(dt.datetime.utcnow()), t,s,dic['best_bid_price'],dic['estimated_delivery_price'], (relSpd-1)*100)
                 sendTelegram(msg)
-                sendMail(msg)
+                if relSpd<0.97 or relSpd>1.16:
+                    sendMail(msg)
             if s!="-PERPETUAL":
                 continue
         except:
