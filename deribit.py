@@ -14,23 +14,31 @@ def sendSMS(msg):
     x = requests.post(url, data = myobj, headers=headers)
     print(x.text)
 
-def sendMail(msg):
+def sendMail(msg,body):
     requests.post(
         "https://api.mailgun.net/v3/mg.markowitzoptimizer.pro/messages",
         auth=("api", config.MAILGUN_APIKEY),
         data={"from": "admin <admin@mg.markowitzoptimizer.pro>",
               "to": "admin@mg.markowitzoptimizer.pro",
               "subject": msg,
-              "text": msg})
+              "text": body})
 
-def markertoday(filename):
-    recentfileexists = True if os.path.exists(filename) and (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600/24.<1 else False
-    if recentfileexists:
-        return True
+def markersummary(filename,days,msg):
+    body = ""
+    if os.path.exists(filename):
+        if (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600/24.<days:
+            f = open(filename, "a")
+            f.write(msg)
+            f.close()
+            return body
+        else:
+            f = open(filename, "r")
+            body = f.read()
+            f.close()
     f = open(filename, "w")
-    f.write(".")
+    f.write(msg)
     f.close()
-    return False
+    return body
         
 def sendTelegram(text):
     params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'HTML'}
@@ -102,10 +110,12 @@ for t in tickers:
             f.close()
             relSpd = dic['best_bid_price']/dic['estimated_delivery_price']
             if relSpd<0.97 or relSpd>1.13:
-                msg = os.uname()[1]+":"+__file__+":ALERT-%s: %s%s %.0f %.0f spd=%.2f%%" % (str(dt.datetime.utcnow()), t,s,dic['best_bid_price'],dic['estimated_delivery_price'], (relSpd-1)*100)
+                msgdata = "%s,%s%s,%.0f,%.0f,%.2f%%" % (str(dt.datetime.utcnow()), t,s,dic['best_bid_price'],dic['estimated_delivery_price'], (relSpd-1)*100)
+                msg = os.uname()[1]+":"+__file__+":ALERT:" +msgdata
                 sendTelegram(msg)
-                if not markertoday("deribit-future-contango.marker"):
-                    sendMail(msg)
+                body = markersummary(filename="deribit-future-contango.marker",days=1,msg=msgdata)
+                if body!="":
+                    sendMail(msg,body)
             if s!="-PERPETUAL":
                 continue
         except:
