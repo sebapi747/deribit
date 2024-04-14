@@ -26,7 +26,7 @@ def sendMail(msg,body):
 def markersummary(filename,days,msg):
     body = ""
     if os.path.exists(filename):
-        if (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600/24.<days:
+        if (dt.datetime.now().timestamp()-os.path.getatime(filename))/3600/24.<days:
             f = open(filename, "a")
             f.write(msg)
             f.close()
@@ -109,13 +109,13 @@ for t in tickers:
             f.write("\n"+",".join([str(dic.get(f)) for f in fields]))
             f.close()
             relSpd = dic['best_bid_price']/dic['estimated_delivery_price']
-            if relSpd<0.97 or relSpd>1.13:
+            if relSpd<0.99 or relSpd>1.14:
                 msgdata = "%s,%s%s,%.0f,%.0f,%.2f%%" % (str(dt.datetime.utcnow()), t,s,dic['best_bid_price'],dic['estimated_delivery_price'], (relSpd-1)*100)
                 msg = os.uname()[1]+":"+__file__+":ALERT:" +msgdata
                 sendTelegram(msg)
                 body = markersummary(filename="deribit-future-contango.marker",days=1,msg=msgdata)
                 if body!="":
-                    sendMail(msg,body)
+                    sendMail(msg,body+"\n")
             if s!="-PERPETUAL":
                 continue
         except:
