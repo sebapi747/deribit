@@ -5,6 +5,7 @@ import config
 import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
+import requests
 dirname = config.dirname
 remotedir = config.remotedir
 outdir = dirname + "/pics/"
@@ -12,6 +13,11 @@ fileout = dirname + "/vol/BTC-USD.csv"
 
 def get_metadata():
     return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
+
+def sendTelegram(text):
+    params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'HTML'}
+    resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
+    resp.raise_for_status()
 
 def update_csv(dirname, fileout):
     filein = dirname + "/BTC-PERPETUAL.csv"
@@ -52,6 +58,10 @@ def get_csv(filename):
     df = pd.read_csv(filename)
     df = df.dropna() #[-300:]
     df['Date'] = pd.to_datetime(df['Date'])
+    if dt.datetime.utcnow()-np.max(df['Date'])>dt.timedelta(days=2):
+        msg = "last date looks too old: %s" % str(np.max(df['Date']))
+        sendTelegram(msg)
+        exit()
     df = pd.DataFrame(df[['Date', 'Close']])
     return df
 
