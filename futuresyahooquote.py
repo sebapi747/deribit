@@ -7,7 +7,7 @@ import re,csv,os
 import pandas as pd
 outdir="csv"
 import config
-
+    
 def get_quote(symbol, tz):
     headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
     symburl = urllib.parse.quote(symbol)

@@ -10,6 +10,9 @@ remotedir = config.remotedir
 outdir = dirname + "/pics/"
 fileout = dirname + "/vol/BTC-USD.csv"
 
+def get_metadata():
+    return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
+
 def update_csv(dirname, fileout):
     filein = dirname + "/BTC-PERPETUAL.csv"
     df2 = pd.read_csv(filein).iloc[-1]
@@ -66,7 +69,7 @@ def graph_vol(df, bar):
     ax2.legend(loc="upper right")
     lr = df['logret'].dropna()
     plt.xlabel("skew=%.2f kurt=%.2f" % ( si.skew(lr), si.kurtosis(lr)))
-    plt.savefig("%sbtc-vol-%dbar.png" % (outdir, bar))
+    plt.savefig("%sbtc-vol-%dbar.png" % (outdir, bar),metadata=get_metadata())
     plt.close()
 
 def run_backtest(df):
@@ -95,19 +98,19 @@ def run_backtest(df):
             plt.plot(df['Date'], np.cumsum(res[b][sigma])/np.arange(len(res[b][sigma]))*365./b, label="vol=%.f%%" % (sigma*100))
         plt.legend()
         plt.title("mean annual pnl for %d days butterfly\nUpdated: %s" % (b,str(df['Date'].iloc[-1])[:10]))
-        plt.savefig("%sbuterfly-pnl-%dbar.png" % (outdir, b))
+        plt.savefig("%sbuterfly-pnl-%dbar.png" % (outdir, b),metadata=get_metadata())
         plt.close()
         for sigma in sigmas:
             plt.plot(df['Date'], np.cumsum(resput[b][sigma])/np.arange(len(res[b][sigma]))*365./b, label="vol=%.f%%" % (sigma*100))
         plt.legend()
         plt.title("mean annual pnl for %d days put\nUpdated: %s" % (b, str(df['Date'].iloc[-1])[:10]))
-        plt.savefig("%sput-pnl-%dbar.png" % (outdir, b))
+        plt.savefig("%sput-pnl-%dbar.png" % (outdir, b),metadata=get_metadata())
         plt.close()
         for sigma in sigmas:
             plt.plot(df['Date'], np.cumsum(rescall[b][sigma])/np.arange(len(res[b][sigma]))*365./b, label="vol=%.f%%" % (sigma*100))
         plt.legend()
         plt.title("mean annual pnl for %d days call\nUpdated: %s" % (b, str(df['Date'].iloc[-1])[:10]))
-        plt.savefig("%scall-pnl-%dbar.png" % (outdir, b))
+        plt.savefig("%scall-pnl-%dbar.png" % (outdir, b),metadata=get_metadata())
         plt.close()
     return res
 

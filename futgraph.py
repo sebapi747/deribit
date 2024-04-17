@@ -10,6 +10,10 @@ remotedir = config.remotedir
 dirname = config.dirname
 outdir = dirname + "/pics/"
 
+
+def get_metadata():
+    return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
+    
 dirs = os.listdir( dirname )
 #
 # Price
@@ -33,7 +37,7 @@ plt.gcf().autofmt_xdate()
 ax1.legend(loc="upper left")
 ax2.legend(loc="upper right")
 plt.title("Price\nUpdated: " + str(pd.Timestamp(df['timestamp'].iloc[-1], unit='ms')))
-plt.savefig(outdir+"price.png")
+plt.savefig(outdir+"price.png",metadata=get_metadata())
 plt.close()
 #
 # futures
@@ -67,7 +71,7 @@ for ticker in ['BTC', 'ETH']:
     plt.ylabel('relative spread')
     plt.legend(bbox_to_anchor=(0,1),loc="upper left")
     plt.title(ticker + " Spot to Future Spread\nUpdated: " + str(pd.Timestamp(df['timestamp'].iloc[-1], unit='ms')))
-    plt.savefig(outdir+ticker+"-spot-to-future-spread.png")
+    plt.savefig(outdir+ticker+"-spot-to-future-spread.png",metadata=get_metadata())
     plt.close()
     # plot yield
     miny, maxy = 10., 0.
@@ -91,7 +95,7 @@ for ticker in ['BTC', 'ETH']:
     plt.ylabel('annualized yield')
     plt.legend(bbox_to_anchor=(0,1),loc="upper left")
     plt.title(ticker + " Contango Yield\nUpdated: " + str(pd.Timestamp(df['timestamp'].iloc[-1], unit='ms')))
-    plt.savefig(outdir+ticker+"-yield.png")
+    plt.savefig(outdir+ticker+"-yield.png",metadata=get_metadata())
     plt.close()
     #
     # future contango
@@ -115,7 +119,7 @@ for ticker in ['BTC', 'ETH']:
     plt.ylabel('price')
     plt.legend()
     plt.title(ticker + " Future Curve\nUpdated: " + str(pd.Timestamp(timestamp, unit='ms')))
-    plt.savefig(outdir+ticker+"-future-curve.png")
+    plt.savefig(outdir+ticker+"-future-curve.png",metadata=get_metadata())
     plt.close()
 
 def getvol(filename):
@@ -140,7 +144,7 @@ def graphvol():
     plt.gcf().autofmt_xdate()
     plt.ylabel("Annualized 10' bar Volatility")
     plt.legend()
-    plt.savefig(outdir+"histvol.png")
+    plt.savefig(outdir+"histvol.png",metadata=get_metadata())
     plt.close()
 
 graphvol()

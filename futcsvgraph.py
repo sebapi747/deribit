@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 dirname = "futcsv/"
 outplot = "pics/"
 
+def get_metadata():
+    return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
+    
 def correct_tqutc(f,df):
     tzmap = {"EDT": "America/New_York", "BST": "Europe/London", "UTC": "UTC"}
     datequotes = []
@@ -68,7 +71,7 @@ def drawallquotesandvol(outplot):
     plt.ylabel("annualised log ret vol")
     plt.title("All Volatilities")
     plt.legend()
-    plt.savefig(outplot+"allfutvol.png")
+    plt.savefig(outplot+"allfutvol.png",metadata=get_metadata())
     plt.close()
 
 def plotcorrelpair(t1,t2,dfbytick,outplot):
@@ -100,7 +103,7 @@ def plotcorrelpair(t1,t2,dfbytick,outplot):
         plt.ylabel("annualised logret vol")
         plt.title("Volatiliy")
         plt.gcf().autofmt_xdate()
-        plt.savefig(outplot+"futpairvol%s_%s.png" % (t1,t2))
+        plt.savefig(outplot+"futpairvol%s_%s.png" % (t1,t2),metadata=get_metadata())
         plt.close()
 
         plt.plot(df.index, corr, label="corr(%s,%s)=%.1f%%" % (t1,t2,np.mean(corr)*100))
@@ -108,7 +111,7 @@ def plotcorrelpair(t1,t2,dfbytick,outplot):
         plt.legend()
         plt.title("Correlation")
         plt.gcf().autofmt_xdate()
-        plt.savefig(outplot+"futpaircorr%s_%s.png" % (t1,t2))
+        plt.savefig(outplot+"futpaircorr%s_%s.png" % (t1,t2),metadata=get_metadata())
         plt.close()
         
 if __name__ == "__main__":
