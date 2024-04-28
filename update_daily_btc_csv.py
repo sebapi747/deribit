@@ -1,11 +1,13 @@
 import pandas as pd
 import datetime as dt
 import os
-import config
-import numpy as np
+mport numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
 import requests
+filedir = os.path.dirname(__file__)
+os.chdir("./" if filedir=="" else filedir)
+import config
 dirname = config.dirname
 remotedir = config.remotedir
 outdir = dirname + "/pics/"
