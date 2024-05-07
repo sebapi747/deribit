@@ -6,13 +6,23 @@ import pytz
 import re,csv,os
 import pandas as pd
 outdir="csv"
+filedir = os.path.dirname(__file__)
+os.chdir("./" if filedir=="" else filedir)
 import config
+
+def sendTelegram(text):
+    prefix = os.uname()[1]+":" + __file__ + ":"
+    params = {'chat_id': config.telegramchatid, 'text': prefix+text, 'parse_mode': 'HTML'}
+    resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
+    resp.raise_for_status()
     
 def get_quote(symbol, tz):
     headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
     symburl = urllib.parse.quote(symbol)
     url = "https://finance.yahoo.com/quote/%s?p=%s" % (symburl,symburl)
     resp = requests.get(url,headers=headers)
+    if resp.status_code!=200:
+        sendTelegram("failed %s %d" % (url,resp.status_code))
     print(resp.status_code, symbol)
     tz    = pytz.timezone(tz)
     tzutc = pytz.timezone("UTC")
@@ -40,8 +50,8 @@ def save_to_csv(symbol, tz):
             w.writerow(dic.keys())
         w.writerow(dic.values())
 
-def update_all_csv(dirname):
-    tickers = pd.read_csv("%s/tickers.csv" % dirname)
+def update_all_csv():
+    tickers = pd.read_csv("tickers.csv" % dirname)
     symdic = {}
     for i,r in tickers.iterrows():
         symdic[r["ticker"]] = r["tz"]
@@ -49,4 +59,4 @@ def update_all_csv(dirname):
         save_to_csv(symbol,tz)
         
 if __name__ == "__main__":
-    update_all_csv(os.path.dirname(__file__))
+    update_all_csv()
