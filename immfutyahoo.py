@@ -96,7 +96,7 @@ def get_quote(symbol, tz):
     headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
     symburl = urllib.parse.quote(symbol)
     url = "https://finance.yahoo.com/quote/%s?p=%s" % (symburl,symburl)
-    time.sleep(0.5)
+    time.sleep(0.1)
     resp = requests.get(url,headers=headers)
     if resp.status_code!=200:
         msg = "failed %s %d" % (url,resp.status_code)
@@ -129,13 +129,18 @@ def get_imm_futures(r):
     radical = ticker[:ticker.find("=F")]
     symbols = [radical+f+"."+r["exchg"] for f in futcode if f[0] in r['code']]
     tz = r['tz']
+    ifail = 0
     for symbol in symbols:
         try:
             opened, quote, tutc, tlocal, timestr,volume = get_quote(symbol,tz)
             d = {'ticker':ticker,'symbol':symbol,'opened':opened, 'quote':quote,'volume':volume,'tutc':tutc, 'tlocal':tlocal, 'timestr':timestr}
             diclist[symbol] = d
         except Exception as e:
+            ifail += 1
             print(str(e))
+            time.sleep(5)
+            if ifail==2:
+                break
     return pd.DataFrame(diclist.values())
 
 def get_all_futures():
@@ -148,7 +153,7 @@ def get_all_futures():
         filename = immcsvdir+ticker+".csv"
         if os.path.exists(filename):
             filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
-            if filehours<1:
+            if filehours<5:
                 print("INFO:skipping recent file for "+ticker)
                 continue
         immfutdf = get_imm_futures(r)
