@@ -84,7 +84,7 @@ def get_tickers():
     diccode = {"PL=F":"FJNV","HG=F":"FGHJKMNQUVXZ","ZS=F":"FHKNQUX",
         "LE=F":"GJMQVZ","HE=F":"GJKMNQVZ","ZC=F":"HKNUZ",
         "SB=F":"HKNV","CC=F":"HKNUZ","KC=F":"HKNUZ","KE=F":"HKNUZ",
-        "ZW=F":"HKNUZ","LBR=F":"FHKNUX"}
+        "ZW=F":"HKNUZ","LBR=F":"FHKNUX","SI=F":"FHKNUZ"}
     for e in dic.keys():
         ticker.loc[ticker["ticker"].isin(list(dic[e])),"exchg"] = e
     for e in diccode.keys():
@@ -113,7 +113,7 @@ def get_quote(symbol, tz):
     if len(notfound)==1 and "Symbols similar " in notfound[0]:
         raise Exception(symbol + " not found")
     quote = float(parsed_body.xpath("//fin-streamer[@data-symbol='%s' and @data-field='regularMarketPrice']" % symbol)[0].text_content().replace(",",""))
-    volume = float(parsed_body.xpath("//fin-streamer[@data-symbol='%s' and @data-field='regularMarketVolume']" % symbol)[0].text_content().replace(",","").replace("k","000"))    
+    volume = float(parsed_body.xpath("//fin-streamer[@data-symbol='%s' and @data-field='regularMarketVolume']" % symbol)[0].text_content().replace(",","").replace("k","000").replace("-- ","0"))    
     #date = parsed_body.xpath("//div[@id='quote-market-notice']/span")[0].text
     date = [s for s in parsed_body.xpath("//div/span/text()") if 'Market Open' in s][0]
     if "Market open" in date or 'Market Open' in date:
@@ -121,40 +121,40 @@ def get_quote(symbol, tz):
         return True, quote, tutc, tnyc, mkttime,volume
     return False, -999, tutc, tnyc, "",-999
 
+def get_imm_futures(r):
+    diclist = {}
+    dtnow = dt.datetime.utcnow()
+    futcode = calc_monthly_imm_codes(dtnow,n=12)
+    ticker = r['ticker']
+    radical = ticker[:ticker.find("=F")]
+    symbols = [radical+f+"."+r["exchg"] for f in futcode if f[0] in r['code']]
+    tz = r['tz']
+    for symbol in symbols:
+        try:
+            opened, quote, tutc, tlocal, timestr,volume = get_quote(symbol,tz)
+            d = {'ticker':ticker,'symbol':symbol,'opened':opened, 'quote':quote,'volume':volume,'tutc':tutc, 'tlocal':tlocal, 'timestr':timestr}
+            diclist[symbol] = d
+        except Exception as e:
+            print(str(e))
+    return pd.DataFrame(diclist.values())
+
 def get_all_futures():
     diclist = {}
-    notfound = {}
     dtnow = dt.datetime.utcnow()
     futcode = calc_monthly_imm_codes(dtnow,n=12)
     tickers = get_tickers()
     for i,r in tickers.iterrows():
         ticker = r['ticker']
-        radical = ticker[:ticker.find("=F")]
-        symbols = [radical+f+"."+r["exchg"] for f in futcode if f[0] in r['code']]
-        tz = r['tz']
-        if notfound.get(ticker) is None:
-            notfound[ticker] = []
-        for symbol in symbols:
-            if symbol in notfound[ticker]:
-                print("skip month not supported "+symbol,end="\r")
+        filename = immcsvdir+ticker+".csv"
+        if os.path.exists(filename):
+            filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
+            if filehours<1:
+                print("INFO:skipping recent file for "+ticker)
                 continue
-            if diclist.get(symbol) is not None:
-                print("skip already loaded "+symbol,end="\r")
-                continue
-            try:
-                opened, quote, tutc, tlocal, timestr,volume = get_quote(symbol,tz)
-                d = {'ticker':ticker,'symbol':symbol,'opened':opened, 'quote':quote,'volume':volume,'tutc':tutc, 'tlocal':tlocal, 'timestr':timestr}
-                diclist[symbol] = d
-            except Exception as e:
-                notfound[ticker].append(symbol)
-                print(str(e))
-    immfutdf = pd.DataFrame(diclist.values())
-    return immfutdf
-    
-def save_futfiles(immfutdf):
-    for s in immfutdf["ticker"].unique():
-        r = immfutdf.loc[immfutdf["ticker"]==s]
-        filename = immcsvdir+s+".csv"
+        immfutdf = get_imm_futures(r)
+        if len(immfutdf)==0:
+            print("ERR:no future data for "+ticker)
+            continue
         if os.path.exists(filename):
             olddata = pd.read_csv(filename)
             pd.concat([olddata,immfutdf]).to_csv(filename,index=False)
@@ -162,5 +162,4 @@ def save_futfiles(immfutdf):
             immfutdf.to_csv(filename,index=False)
     
 if __name__ == "__main__":
-    immfutdf = get_all_futures()
-    save_futfiles(immfutdf)
+    get_all_futures()
