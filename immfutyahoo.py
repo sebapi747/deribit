@@ -155,6 +155,7 @@ def get_all_futures():
     tickers = get_tickers()
     for i,r in tickers.iterrows():
         ticker = r['ticker']
+        print(immcsvdir)
         filename = immcsvdir+ticker+".csv"
         if os.path.exists(filename):
             filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
@@ -173,11 +174,10 @@ def get_all_futures():
     
 def get_dfdic():
     tickerdesc = pd.read_csv("tickers.csv")
-    csvdir = "immfutcsv/"
     dfdic = {}
-    for f in os.listdir(csvdir):
+    for f in os.listdir(immcsvdir):
         r = tickerdesc.loc[tickerdesc["ticker"]==f[:-4]].iloc[0]
-        dfdic[(r["category"],r["ticker"],r["desc"])] = pd.read_csv(csvdir+f)
+        dfdic[(r["category"],r["ticker"],r["desc"])] = pd.read_csv(immcsvdir+f)
     return dfdic
 
 def colorFader(c1,c2,mix=0): #fade (linear interpolate) from color c1 (at mix=0) to c2 (mix=1)
