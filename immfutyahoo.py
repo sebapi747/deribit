@@ -9,12 +9,17 @@ import urllib
 import pytz
 import re
 import time
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
-
+remotedir = config.remotedir
 immcsvdir = config.dirname+"/immfutcsv/"
+outdir = config.dirname + "/immfutpics/"
 
+def get_metadata():
+    return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
 def sendTelegram(text):
     params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'HTML'}
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
@@ -166,5 +171,51 @@ def get_all_futures():
         else:
             immfutdf.to_csv(filename,index=False)
     
+def get_dfdic():
+    tickerdesc = pd.read_csv("tickers.csv")
+    csvdir = "immfutcsv/"
+    dfdic = {}
+    for f in os.listdir(csvdir):
+        r = tickerdesc.loc[tickerdesc["ticker"]==f[:-4]].iloc[0]
+        dfdic[(r["category"],r["ticker"],r["desc"])] = pd.read_csv(csvdir+f)
+    return dfdic
+
+def colorFader(c1,c2,mix=0): #fade (linear interpolate) from color c1 (at mix=0) to c2 (mix=1)
+    c1=np.array(mpl.colors.to_rgb(c1))
+    c2=np.array(mpl.colors.to_rgb(c2))
+    return mpl.colors.to_hex((1-mix)*c1 + mix*c2)
+
+def plot_all_contango():
+    c1='green' # yellow: #FFFF00
+    c2='blue' 
+    dfdic = get_dfdic()
+    for category,ticker,desc  in  sorted(dfdic.keys()):
+        df = dfdic[(category,ticker,desc)]
+        df['tutc'] = pd.to_datetime(df['tutc'])
+        tdiffgauge = dt.timedelta(days=4/24)
+        tdiff = df['tutc'].diff()
+        idx = df.loc[~(tdiff<tdiffgauge)].index
+        tickdic = {}
+        for i,ist in enumerate(idx):
+            iend = idx[i+1] if i+1<len(idx) else df.index[-1]+1
+            dfi = df[ist:iend].copy()
+            dfi = dfi.loc[~df["timestr"].str.contains(" at ")]
+            dfi = dfi.loc[df["timestr"].str.contains("Market Open.")]
+            if len(dfi)>0:
+                c = colorFader(c1,c2,ist/len(df))
+                symbols = [s[:s.find(".")][-3:] for s in dfi["symbol"]]
+                symbolterm = [float(s[-2:])+"FGHJKMNQUVXZ".find(s[-3])/12 for s in symbols]
+                tickdic.update(dict(zip(symbols,symbolterm)))
+                dP = (dfi["quote"].iloc[-1]-dfi["quote"].iloc[0])/dfi["quote"].iloc[0]
+                dT = symbolterm[-1]-symbolterm[0]
+                plt.plot(symbolterm,dfi["quote"],label="%s" % dfi["tutc"].iloc[0],color=c,alpha=ist/len(df))
+                #print(tickdic)
+                plt.xticks(ticks=symbolterm, labels=symbols,rotation=45)
+        plt.title("%s %s %s y=%.2f%%" % (category,ticker,desc,dP/dT*100))
+        plt.savefig(outdir+"contango-%s.png" % ticker,metadata=get_metadata())
+        plt.close()
+    os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
+ 
 if __name__ == "__main__":
     get_all_futures()
+    #plot_all_contango()
