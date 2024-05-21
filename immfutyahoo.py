@@ -212,6 +212,7 @@ def plot_all_contango():
                 #print(tickdic)
                 plt.xticks(ticks=symbolterm, labels=symbols,rotation=45)
         plt.title("%s %s %s y=%.2f%%" % (category,ticker,desc,dP/dT*100))
+        plt.xlabel("quotes from:" + str(df.iloc[idx[0]]["tutc"])[:16]+" to " + str(df.iloc[idx[-1]]["tutc"])[:16])
         plt.savefig(outdir+"contango-%s.png" % ticker,metadata=get_metadata())
         plt.close()
     os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
