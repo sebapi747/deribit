@@ -115,7 +115,7 @@ for t in tickers:
                 sendTelegram(msg)
                 body = markersummary(filename="deribit-future-contango.marker",days=1,msg=msgdata)
                 if body!="":
-                    sendMail(msg,body+"\n")
+                    sendTelegram(msg,body+"\n")
             if s!="-PERPETUAL":
                 continue
         except:
