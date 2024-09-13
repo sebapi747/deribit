@@ -91,7 +91,7 @@ for t in tickers:
             url = "https://www.deribit.com/api/v2/public/ticker?instrument_name=%s" % ticker
             headers = {'Content-Type': 'application/json'}
             resp = requests.get(url,headers=headers)
-            print(resp.status_code)
+            print(url,resp.status_code)
             dic = dict(resp.json()['result'])
             dic.pop('stats')
             filename =  "%s/%s.csv" % (dirname,ticker)
