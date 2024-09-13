@@ -108,16 +108,17 @@ for t in tickers:
             f = open(filename, "a")
             f.write("\n"+",".join([str(dic.get(f)) for f in fields]))
             f.close()
+            if s=="-PERPETUAL":
+                continue
             relSpd = dic['best_bid_price']/dic['estimated_delivery_price']
             if relSpd<0.99 or relSpd>1.14:
                 msgdata = "%s,%s%s,%.0f,%.0f,%.2f%%" % (str(dt.datetime.utcnow()), t,s,dic['best_bid_price'],dic['estimated_delivery_price'], (relSpd-1)*100)
                 msg = os.uname()[1]+":"+__file__+":ALERT:" +msgdata
                 sendTelegram(msg)
-                body = markersummary(filename="deribit-future-contango.marker",days=1,msg=msgdata)
+                body = markersummary(filename="deribit-future-contango.marker",days=1,msg=msgdata+"\n")
                 if body!="":
                     sendTelegram(msg,body+"\n")
-            if s!="-PERPETUAL":
-                continue
+                    sendMail(msg,body)
         except:
             print("failure for %s" % ticker)
             pass
