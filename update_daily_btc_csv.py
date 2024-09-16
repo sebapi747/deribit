@@ -1,7 +1,7 @@
 import pandas as pd
 import datetime as dt
 import os
-mport numpy as np
+import numpy as np
 import scipy.stats as si
 import matplotlib.pyplot as plt
 import requests
@@ -130,6 +130,8 @@ update_csv(dirname, fileout)
 df = get_csv(fileout)
 run_backtest(df)
 graph_vol(df, 1)
-os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
+rsynccmd = 'rsync -avzhe ssh %s %s' % (outdir, remotedir)
+print(rsynccmd)
+os.system(rsynccmd)
 
 
