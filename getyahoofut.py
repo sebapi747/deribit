@@ -235,8 +235,8 @@ def show_strat_pnl(logret,weight, ma50, ma200, a, b, graphics,csvdir):
             sell = d.loc[d==-1].index
             yr   = (cumret.index[-1]-cumret.index[0]).total_seconds()/3600/24/365.25
             riskonpct = np.sum(weight)/len(weight)
-            plt.plot(cumret[a][buy], linewidth=0, markersize=5, marker="o", color="green", label="buy %.1f signal per yr, risk-on=%.0f%%" % (len(buy)/yr,riskonpct*100))
-            plt.plot(cumret[a][sell], linewidth=0, markersize=5, marker="o", color="red", label="sell %.1f signal per yr, risk-off=%.0f%%" % (len(sell)/yr,(1-riskonpct)*100))
+            plt.plot(cumret[a][buy], linewidth=0, markersize=5, marker="^", color="green", label="buy %.1f signal per yr, risk-on=%.0f%%" % (len(buy)/yr,riskonpct*100))
+            plt.plot(cumret[a][sell], linewidth=0, markersize=5, marker="v", color="red", label="sell %.1f signal per yr, risk-off=%.0f%%" % (len(sell)/yr,(1-riskonpct)*100))
         plt.gcf().autofmt_xdate()
         plt.title("pnl %s" % b)
         plt.legend()
