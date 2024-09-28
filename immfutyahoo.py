@@ -119,9 +119,9 @@ def get_quote(symbol, tz):
     if len(notfound)==1 and "Symbols similar " in notfound[0]:
         raise Exception(symbol + " not found")
     quote = float(parsed_body.xpath("//fin-streamer[@data-symbol='%s' and @data-field='regularMarketPrice']" % symbol)[0].text_content().replace(",",""))
-    volume = float(parsed_body.xpath("//fin-streamer[@data-symbol='%s' and @data-field='regularMarketVolume']" % symbol)[0].text_content().replace(",","").replace("k","000").replace("-- ","0"))    
+    volume = float(parsed_body.xpath("//fin-streamer[@data-symbol='%s' and @data-field='regularMarketVolume']" % symbol)[0].text_content().replace(",","").replace("M","000000").replace("k","000").replace("-- ","0"))    
     #date = parsed_body.xpath("//div[@id='quote-market-notice']/span")[0].text
-    date = [s for s in parsed_body.xpath("//div/span/text()") if 'Market Open' in s][0]
+    date = [s for s in parsed_body.xpath("//div/span/text()") if 'Market Open' in s or "At close:" in s][0]
     if "Market open" in date or 'Market Open' in date:
         mkttime = re.sub(r'\. Market [a-z]+.$', '', re.sub(r'^As of[ \t]*', '', date))
         return True, quote, tutc, tnyc, mkttime,volume
