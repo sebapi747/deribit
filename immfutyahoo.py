@@ -83,7 +83,6 @@ def get_tickers():
     ticker.loc[ticker["category"]=="rate","code"] = "HMUZ"
     ticker.loc[ticker["category"]=="energy","code"] = "FGHJKMNQUVXZ"
     ticker.loc[ticker["category"]=="fxfut","code"] = "HMUZ"
-    ticker.loc[ticker["category"]=="fxst","code"] = "FGHJKMNQUVXZ"
     ticker.loc[ticker["category"]=="equity","code"] = "HMUZ"
     ticker.loc[ticker["category"]=="metal","code"] = "GJMQVZ"
     dic = {"CBT":["ZS=F","ZC=F","KE=F","ZW=F",],"NYB":["SB=F","CC=F","KC=F"],
@@ -91,7 +90,7 @@ def get_tickers():
     diccode = {"PL=F":"FJNV","HG=F":"FGHJKMNQUVXZ","ZS=F":"FHKNQUX",
         "LE=F":"GJMQVZ","HE=F":"GJKMNQVZ","ZC=F":"HKNUZ",
         "SB=F":"HKNV","CC=F":"HKNUZ","KC=F":"HKNUZ","KE=F":"HKNUZ",
-        "ZW=F":"HKNUZ","LBR=F":"FHKNUX","SI=F":"FHKNUZ"}
+        "ZW=F":"HKNUZ","LBR=F":"FHKNUX","SI=F":"FHKNUZ","MIR=F":"FGHJKMNQUVXZ"}
     for e in dic.keys():
         ticker.loc[ticker["ticker"].isin(list(dic[e])),"exchg"] = e
     for e in diccode.keys():
