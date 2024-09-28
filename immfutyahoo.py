@@ -82,10 +82,12 @@ def get_tickers():
     ticker.loc[ticker["category"]=="metal","exchg"] = "CMX"
     ticker.loc[ticker["category"]=="rate","code"] = "HMUZ"
     ticker.loc[ticker["category"]=="energy","code"] = "FGHJKMNQUVXZ"
+    ticker.loc[ticker["category"]=="fxfut","code"] = "HMUZ"
+    ticker.loc[ticker["category"]=="fxst","code"] = "FGHJKMNQUVXZ"
     ticker.loc[ticker["category"]=="equity","code"] = "HMUZ"
     ticker.loc[ticker["category"]=="metal","code"] = "GJMQVZ"
     dic = {"CBT":["ZS=F","ZC=F","KE=F","ZW=F",],"NYB":["SB=F","CC=F","KC=F"],
-        "CME":["LBR=F","LE=F","HE=F"],"NYM":["PL=F"]}
+        "CME":["LBR=F","LE=F","HE=F","6A=F","6B=F","6C=F","6E=F","6J=F","6S=F","CNH=F","MIR=F"],"NYM":["PL=F"]}
     diccode = {"PL=F":"FJNV","HG=F":"FGHJKMNQUVXZ","ZS=F":"FHKNQUX",
         "LE=F":"GJMQVZ","HE=F":"GJKMNQVZ","ZC=F":"HKNUZ",
         "SB=F":"HKNV","CC=F":"HKNUZ","KC=F":"HKNUZ","KE=F":"HKNUZ",
