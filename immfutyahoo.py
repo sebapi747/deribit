@@ -178,6 +178,7 @@ def get_dfdic():
     dfdic = {}
     for f in os.listdir(immcsvdir):
         r = tickerdesc.loc[tickerdesc["ticker"]==f[:-4]].iloc[0]
+        print(immcsvdir+f)
         dfdic[(r["category"],r["ticker"],r["desc"])] = pd.read_csv(immcsvdir+f)
     return dfdic
 
@@ -197,6 +198,7 @@ def plot_all_contango():
         tdiff = df['tutc'].diff()
         idx = df.loc[~(tdiff<tdiffgauge)].index
         tickdic = {}
+        print("INFO: graph for ",ticker)
         for i,ist in enumerate(idx):
             iend = idx[i+1] if i+1<len(idx) else df.index[-1]+1
             dfi = df[ist:iend].copy()
