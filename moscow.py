@@ -1,6 +1,7 @@
 import json, time, os
 import pandas as pd
 import datetime as dt
+from pathlib import Path
 import requests
 from DrissionPage import ChromiumPage
 filedir = os.path.dirname(__file__)
@@ -36,16 +37,17 @@ def append_csv(filename,errdf):
 def get_all_prices(page):
     price,err = {},{}
     moscow_ticks = '["ABRD", "AFKS", "AFLT", "AKRN", "ALRS", "AMEZ", "AQUA", "AVAN", "BANE", "BELU", "BSPB", "CBOM", "CHGZ", "CHMF", "DSKY", "ENPG", "FEES", "FESH", "FLOT", "GAZP", "GCHE", "GEMA", "GMKN", "HYDR", "IRAO", "JNOS", "KAZT", "KMAZ", "KOGK", "KRKN", "KZOS", "LKOH", "LSNG", "LSRG", "MAGN", "MFGS", "MGNT", "MGNZ", "MGTS", "MOEX", "MRKC", "MRKP", "MRKU", "MRKV", "MSNG", "MSRS", "MTLR", "MTSS", "MVID", "NKHP", "NKNC", "NKSH", "NLMK", "NMTP", "NVTK", "OGKB", "PHOR", "PIKK", "PLZL", "POSI", "RASP", "RENI", "RNFT", "ROSN", "RTGZ", "RTKM", "RUAL", "SBER", "SELG", "SFIN", "SGZH", "SIBN", "SMLT", "SNGS", "SVAV", "TATN", "TGKA", "TORS", "TRMK", "TTLK", "UNAC", "VGSB", "VSMO", "VTBR", "YKEN"]'
-    for ticker in json.loads(moscow_ticks):
+    for i,ticker in enumerate(json.loads(moscow_ticks)):
         try:
             url = 'https://www.tbank.ru/invest/stocks/%s/' % ticker
+            print("INFO: getting %d %s" % (i,ticker))
             page.get(url)
             time.sleep(0.5)
             statedic = json.loads(page.ele("#__TRAMVAI_STATE__").inner_html)
             price[ticker] = statedic['stores']['investSecurity'][ticker]['prices']['close']['value']
             pricedf = pd.DataFrame({'ticker':[ticker],"quote":price[ticker]})
             pricedf["lastupdated"] = dt.datetime.utcnow()
-            append_csv(dirname+"moscow_price.csv",pricedf)
+            append_csv(dirname+"%s.csv" % ticker,pricedf)
         except Exception as e:
             err[ticker] = "not found"
             if len(err)>15:
