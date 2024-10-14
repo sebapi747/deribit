@@ -5,7 +5,8 @@ filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
 
-btcaddress = '38zPevxjY7bNxtRMnpbs8rF5tMnpTCWtNt'
+#btcaddress = '38zPevxjY7bNxtRMnpbs8rF5tMnpTCWtNt'
+btcaddress = "1MeNUCC6buJUaj5L2PAiZtSso44xdVUn7C"
 
 def sendTelegram(text):
     params = {'chat_id': config.telegramchatid, 'text': os.uname()[1]+":"+__file__+":ALERT:" +text, 'parse_mode': 'HTML'}
