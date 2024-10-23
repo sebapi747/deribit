@@ -187,10 +187,47 @@ def colorFader(c1,c2,mix=0): #fade (linear interpolate) from color c1 (at mix=0)
     c2=np.array(mpl.colors.to_rgb(c2))
     return mpl.colors.to_hex((1-mix)*c1 + mix*c2)
 
+def immdates_in_interval(mindate,maxdate,ticker,tickersdf):
+    out = []
+    rolloffset = 0
+    expymth = ["FGHJKMNQUVXZ".find(k)+1 for k in tickersdf.loc[tickersdf["ticker"]==ticker,"code"].iloc[0]]
+    for yr in range(mindate.year,maxdate.year+1):
+        for mt in expymth:
+            futdt = dt.datetime(yr,mt,1).replace(tzinfo=pytz.utc)
+            daystofriday = (4-futdt.weekday())%7
+            thirdfriday = futdt+dt.timedelta(days=daystofriday+14-rolloffset)
+            if thirdfriday>=mindate and thirdfriday<=maxdate:
+                out.append(thirdfriday)
+    return out
+
+def plot_contango_yield(dirname="../deribit"):
+    ydf = pd.read_csv(dirname+"/contango.csv")
+    ydf["t"] = pd.to_datetime(ydf["t"])
+    tickersdf = get_tickers()
+    for i,r in tickersdf.iterrows():
+        ticker = r["ticker"]
+        yi = ydf.loc[ydf["ticker"]==ticker]
+        if len(yi)<100:
+            continue
+        yidiff = yi["y"].diff()
+        mindiff, maxdiff = np.quantile(yidiff.dropna(),[0.02,0.98])
+        yi = yi.loc[(yidiff>mindiff) & (yidiff<maxdiff)]
+        immdates = immdates_in_interval(yi["t"].iloc[0],yi["t"].iloc[-1],ticker,tickersdf)
+        plt.plot(yi["t"],yi["y"])
+        for immdate in immdates:
+            plt.axvline(x=immdate,color="black")
+        plt.title("%s %s" % (ticker,r["desc"]))
+        plt.ylabel("contango rate")
+        plt.gcf().autofmt_xdate()
+        plt.xlabel("quotes from:" + str(yi.iloc[0]["t"])[:16]+" to " + str(yi.iloc[-1]["t"])[:16])
+        plt.savefig(outdir+"contango-rate-%s.png" % ticker,metadata=get_metadata())
+        plt.close()
+        
 def plot_all_contango():
     c1='green' # yellow: #FFFF00
     c2='blue' 
     dfdic = get_dfdic()
+    contangolist = []
     for category,ticker,desc  in  sorted(dfdic.keys()):
         df = dfdic[(category,ticker,desc)]
         df['tutc'] = pd.to_datetime(df['tutc'])
@@ -202,8 +239,9 @@ def plot_all_contango():
         for i,ist in enumerate(idx):
             iend = idx[i+1] if i+1<len(idx) else df.index[-1]+1
             dfi = df[ist:iend].copy()
-            dfi = dfi.loc[~df["timestr"].str.contains(" at ")]
-            dfi = dfi.loc[df["timestr"].str.contains("Market Open.")]
+            dfi = dfi.loc[~df['timestr'].isna()]
+            dfi = dfi.loc[~dfi["timestr"].str.contains(" at ")]
+            dfi = dfi.loc[dfi["timestr"].str.contains("Market Open.")]
             if len(dfi)>0:
                 c = colorFader(c1,c2,ist/len(df))
                 symbols = [s[:s.find(".")][-3:] for s in dfi["symbol"]]
@@ -212,14 +250,17 @@ def plot_all_contango():
                 dP = (dfi["quote"].iloc[-1]-dfi["quote"].iloc[0])/dfi["quote"].iloc[0]
                 dT = symbolterm[-1]-symbolterm[0]
                 plt.plot(symbolterm,dfi["quote"],label="%s" % dfi["tutc"].iloc[0],color=c,alpha=ist/len(df))
-                #print(tickdic)
+                if dT>0:
+                    contangolist.append({"ticker":ticker,"t":dfi["tutc"].iloc[0],"y":dP/dT})
                 plt.xticks(ticks=symbolterm, labels=symbols,rotation=45)
         plt.title("%s %s %s y=%.2f%%" % (category,ticker,desc,dP/dT*100))
         plt.xlabel("quotes from:" + str(df.iloc[idx[0]]["tutc"])[:16]+" to " + str(df.iloc[idx[-1]]["tutc"])[:16])
         plt.savefig(outdir+"contango-%s.png" % ticker,metadata=get_metadata())
         plt.close()
+    pd.DataFrame(contangolist).to_csv("contango.csv",index=False)
+    plot_contango_yield()
     os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
  
 if __name__ == "__main__":
-    get_all_futures()
-    #plot_all_contango()
+    #get_all_futures()
+    plot_all_contango()
