@@ -262,5 +262,5 @@ def plot_all_contango():
     os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
  
 if __name__ == "__main__":
-    #get_all_futures()
-    plot_all_contango()
+    get_all_futures()
+    #plot_all_contango()
