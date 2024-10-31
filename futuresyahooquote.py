@@ -51,7 +51,7 @@ def save_to_csv(symbol, tz):
         w.writerow(dic.values())
 
 def update_all_csv():
-    tickers = pd.read_csv("tickers.csv" % dirname)
+    tickers = pd.read_csv("tickers.csv")
     symdic = {}
     for i,r in tickers.iterrows():
         symdic[r["ticker"]] = r["tz"]
