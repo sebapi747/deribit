@@ -29,6 +29,9 @@ def get_quote(symbol, tz):
     tnyc  = dt.datetime.now(tz)
     tutc  = tnyc.astimezone(tzutc)
     parsed_body = html.fromstring(resp.text)
+    #f = open("fut.html","w")
+    #f.write(resp.text)
+    #f.close()
     quote = float(parsed_body.xpath("//fin-streamer[@data-symbol='%s' and @data-field='regularMarketPrice']" % symbol)[0].text.replace(",",""))
     date = parsed_body.xpath("//div[@id='quote-market-notice']/span")[0].text
     if "Market open" in date:
