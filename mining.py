@@ -1,4 +1,5 @@
-import requests,json,os
+import requests,json,os,csv
+import datetime as dt
 from lxml.html.soupparser import fromstring
 from pathlib import Path
 filedir = os.path.dirname(__file__)
@@ -85,6 +86,14 @@ def checkmining(btcaddress):
     rates = "reward/yr=%.2fUSD (%.8fBTC) elec/yr=%.2f (%.2fUSD/kWh) solo=%.1f years/block" % (usdperday*365,btcperday*365,usdelecperday*365,eleckWhprice,soloblockyear)
     sendTelegram(balances+"\n"+rates)
     print(balances+"\n"+rates)
+    dic = {"btcperday":btcperday,'usdperday':usdperday,"myhashrate":myhashrate,"tutc":dt.datetime.utcnow()}
+    filename =  "%s/bitaxe/bitaxe.csv" % (config.dirname)
+    fileexists = os.path.isfile(filename)
+    with open(filename, 'a') as f:
+        w = csv.writer(f)
+        if fileexists == False:
+            w.writerow(dic.keys())
+        w.writerow(dic.values())
 
 
 if __name__ == "__main__":
