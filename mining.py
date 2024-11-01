@@ -69,7 +69,7 @@ def checkmining(btcaddress):
         raise Exception("ERR:%s %d" % (url,x.status_code))
     answer = x.json()
     myhashrate,poolbalance = poolio(btcaddress)
-    eleckWhprice = 0.12
+    eleckWhprice = 0.053
     block_reward=100*2**(-answer['data']['blocks']//210000)
     totalhashperbtc  = float(answer['data']['hashrate_24h'])*60*10/block_reward
     totalhashperusd  = totalhashperbtc/answer['data']['market_price_usd']
@@ -101,4 +101,4 @@ if __name__ == "__main__":
         checkmining(btcaddress)
     except Exception as e:
         sendTelegram("ERR: "+str(e))
-        print("ERR: "+str(e))
+        raise
