@@ -291,14 +291,16 @@ def inserttickersymbols(ticker, symbols):
     except Exception as e:
         print("ERR: %s" % str(e))
         sendTelegram("ERR: %s" % str(e))
-        return
+    ifail = 0
     for symbol in symbols:
         try:
             getandinsertfutpandas(symbol,dbfilename)
         except Exception as e:
             print("ERR: %s" % str(e))
             sendTelegram("ERR: %s" % str(e))
-            break
+            ifail += 1
+            if ifail==2:
+                break
     with sqlite3.connect(dbfilename) as con:
         nbafter = len(pd.read_sql("select 1 from immfut", con=con))
     sendTelegram("%s: had %d quotes now %d" % (ticker,nbbefore,nbafter))
