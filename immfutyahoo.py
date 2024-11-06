@@ -1,11 +1,12 @@
-import csv
-import os
+#import csv
+import os,json,time,sqlite3
 import datetime as dt
-import requests
-from lxml import html
-import numpy as np
 import pandas as pd
-import urllib
+import random
+#import requests
+#from lxml import html
+import numpy as np
+#import urllib
 import pytz
 import re
 import time
@@ -17,6 +18,9 @@ import config
 remotedir = config.remotedir
 immcsvdir = config.dirname+"/immfutcsv/"
 outdir = config.dirname + "/immfutpics/"
+dirname = config.dirname 
+localtz = pytz.timezone("Asia/Hong_Kong")
+utctz   = pytz.timezone("UTC")
 
 def get_metadata():
     return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
@@ -97,7 +101,7 @@ def get_tickers():
         ticker.loc[ticker["ticker"]==e,"code"] = diccode[e]
     return ticker
 
-
+'''
 def get_quote(symbol, tz):
     headers = {'accept':'*/*', 'user-agent': 'Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Raspbian Chromium/78.0.3904.108 Chrome/78.0.3904.108 Safari/537.36'}
     symburl = urllib.parse.quote(symbol)
@@ -172,7 +176,134 @@ def get_all_futures():
             pd.concat([olddata,immfutdf]).to_csv(filename,index=False)
         else:
             immfutdf.to_csv(filename,index=False)
+ '''  
+ 
+''' -------------------------------------------------------
+save dataframe in sqlite to avoid duplicates
+'''
+def get_jsonfilename(ticker):
+    return "json/%s.json" % (ticker)
+def get_futjson_data(ticker):
+    url = "https://query1.finance.yahoo.com/v8/finance/chart/" + ticker
+    filename = get_jsonfilename(ticker)
+    errfilename = filename.replace(".json",".err")
+    if os.path.exists(filename):
+        filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
+        print("INFO: %s found" % filename)
+        if filehours<2:
+            with open(filename,"r") as f:
+                return json.load(f)
+    if os.path.exists(errfilename):
+        filehours = (dt.datetime.now().timestamp()-os.path.getmtime(errfilename))/3600
+        print("INFO: %s found" % filename)
+        if filehours<2:
+            raise Exception("ERR: %s occurred less than 2 hours ago" % errfilename)
+    sleeptime = random.uniform(1,2)
+    print("INFO: %s in %.2fsec" % (url,sleeptime))
+    time.sleep(sleeptime)
+    os.system("rm -f %s" % filename)
+    os.system("curl --silent %s > %s" % (url,filename))
+    try:
+        if not os.path.exists(filename):
+            raise Exception("ERR: could not fetch %s" % url)
+        with open(filename,"r") as f:
+            jsondata = json.load(f)
+        if jsondata['chart'].get('error') is not None:
+            raise Exception("ERR: %s %s" % (ticker, jsondata['chart']['error']['description']))
+    except Exception as e:
+        with open(errfilename, "w") as f:
+            f.write(str(e))
+        raise
+    return jsondata
+
+def convertdate(d):
+    return dt.datetime.fromtimestamp(d).astimezone(localtz).astimezone(utctz)
+def processjsontopandas(jsondata):
+    jsonmeta = jsondata['chart']['result'][0]['meta']
+    #echgtz  = pytz.timezone(jsonmeta['exchangeTimezoneName'])
+    result  = jsondata['chart']['result'][0]
+    if result.get('timestamp') is not None and len(result['indicators']['quote'])>0:
+        dates = [convertdate(d) for d in result['timestamp']]
+        out = {'utcdate':dates}
+        for c in ["open","low","high","close","volume"]:
+            out[c] = result['indicators']['quote'][0][c]
+    else:
+        meta = result['meta']
+        #utcdate = convertdate(meta['regularMarketTime'])
+        #price = meta['convertdate']
+        #volume = meta['regularMarketVolume']
+        with open(get_jsonfilename(meta['symbol']).replace(".json",".err"), "w") as f:
+            json.dump(meta,f)
+        raise Exception("ERR: %s json does not have future time series" % meta['symbol'])
+    df = pd.DataFrame(out).dropna()
+    df['symbol'] = jsonmeta['symbol']
+    return df
+
+def getimmtickdics():
+    tickers = get_tickers()
+    immtickdic = {}
+    for i,r in tickers.iterrows():
+        dtnow = dt.datetime.utcnow()
+        futcode = calc_monthly_imm_codes(dtnow,n=12)
+        ticker = r['ticker']
+        radical = ticker[:ticker.find("=F")]
+        symbols = [radical+f+"."+r["exchg"] for f in futcode if f[0] in r['code']]
+        immtickdic[ticker] = symbols
+    return immtickdic
     
+def schema(dbfilename):
+    if not os.path.exists(dbfilename):
+        print("WARN: missing file %s" % dbfilename)
+        #os.system("touch %s" % dbfilename)
+        with sqlite3.connect(dbfilename) as con:
+            con.execute('''
+            create table immfut (
+            symbol text,
+            utcdate datetime,
+            open numeric,
+            low numeric,
+            high numeric,
+            close numeric,
+            volume numeric,
+            primary key(symbol, utcdate)
+            )''')
+        
+
+def insert_df_to_table(df, tablename, cols,con):
+    df[cols].to_sql(name=tablename+'_tmp', con=con, if_exists='replace',index=False)
+    sql = 'insert or replace into '+tablename+' ('+','.join(cols)+') select '+','.join(cols)+' from '+tablename+'_tmp'
+    con.execute(sql)
+    con.execute('drop table '+tablename+'_tmp')
+    
+def getandinsertfutpandas(ticker,dbfilename):
+    df = processjsontopandas(get_futjson_data(ticker))
+    print("INFO: %s inserting %d" % (ticker,len(df)))
+    with sqlite3.connect(dbfilename) as con:
+        insert_df_to_table(df, "immfut", df.columns,con)
+
+def inserttickersymbols(ticker, symbols):
+    dbfilename = "%s/immfut/%s.db" % (dirname,ticker)
+    schema(dbfilename)
+    try:
+        getandinsertfutpandas(ticker,dbfilename)
+    except Exception as e:
+        print("ERR: %s" % str(e))
+        return
+    for symbol in symbols:
+        try:
+            getandinsertfutpandas(symbol,dbfilename)
+        except Exception as e:
+            print("ERR: %s" % str(e))
+            break
+
+def insertalltickers():
+    immtickdic = getimmtickdics()
+    for ticker,symbols in immtickdic.items():
+        inserttickersymbols(ticker, symbols)
+
+''' -------------------------------------------------------
+plot graphs
+'''
 def get_dfdic():
     tickerdesc = pd.read_csv("tickers.csv")
     dfdic = {}
@@ -262,5 +393,6 @@ def plot_all_contango():
     os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
  
 if __name__ == "__main__":
-    get_all_futures()
+    #get_all_futures()
+    insertalltickers()
     #plot_all_contango()
