@@ -3,7 +3,7 @@ import os,json,time,sqlite3
 import datetime as dt
 import pandas as pd
 import random
-#import requests
+import requests
 #from lxml import html
 import numpy as np
 #import urllib
@@ -25,7 +25,7 @@ utctz   = pytz.timezone("UTC")
 def get_metadata():
     return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
 def sendTelegram(text):
-    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'HTML'}
+    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdown'}
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
     
@@ -190,13 +190,13 @@ def get_futjson_data(ticker):
     if os.path.exists(filename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
         print("INFO: %s found" % filename)
-        if filehours<2:
+        if filehours<1:
             with open(filename,"r") as f:
                 return json.load(f)
     if os.path.exists(errfilename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(errfilename))/3600
         print("INFO: %s found" % filename)
-        if filehours<2:
+        if filehours<1:
             raise Exception("ERR: %s occurred less than 2 hours ago" % errfilename)
     sleeptime = random.uniform(1,2)
     print("INFO: %s in %.2fsec" % (url,sleeptime))
@@ -284,17 +284,24 @@ def getandinsertfutpandas(ticker,dbfilename):
 def inserttickersymbols(ticker, symbols):
     dbfilename = "%s/immfut/%s.db" % (dirname,ticker)
     schema(dbfilename)
+    with sqlite3.connect(dbfilename) as con:
+        nbbefore = len(pd.read_sql("select 1 from immfut", con=con))
     try:
         getandinsertfutpandas(ticker,dbfilename)
     except Exception as e:
         print("ERR: %s" % str(e))
+        sendTelegram("ERR: %s" % str(e))
         return
     for symbol in symbols:
         try:
             getandinsertfutpandas(symbol,dbfilename)
         except Exception as e:
             print("ERR: %s" % str(e))
+            sendTelegram("ERR: %s" % str(e))
             break
+    with sqlite3.connect(dbfilename) as con:
+        nbafter = len(pd.read_sql("select 1 from immfut", con=con))
+    sendTelegram("%s: had %d quotes now %d" % (ticker,nbbefore,nbafter))
 
 def insertalltickers():
     immtickdic = getimmtickdics()
