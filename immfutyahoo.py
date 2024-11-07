@@ -201,7 +201,7 @@ def get_futjson_data(ticker):
     errfilename = filename.replace(".json",".err")
     if os.path.exists(filename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
-        print("INFO: %s found" % filename)
+        print("INFO: %s found" % filename, end="\r")
         if filehours<0.5:
             with open(filename,"r") as f:
                 return json.load(f)
@@ -289,7 +289,7 @@ def insert_df_to_table(df, tablename, cols,con):
     
 def getandinsertfutpandas(ticker,dbfilename):
     df = processjsontopandas(get_futjson_data(ticker))
-    print("INFO: %s inserting %d" % (ticker,len(df)))
+    print("INFO: %s inserting %d" % (ticker,len(df)),end="\r")
     with sqlite3.connect(dbfilename) as con:
         insert_df_to_table(df, "immfut", df.columns,con)
 
@@ -304,17 +304,19 @@ def inserttickersymbols(ticker, symbols):
         print("ERR: %s" % str(e))
         sendTelegram("ERR: %s" % str(e))
     ifail = 0
-    for symbol in symbols:
+    for i,symbol in enumerate(symbols):
         try:
             getandinsertfutpandas(symbol,dbfilename)
         except Exception as e:
-            print("ERR: %s" % str(e))
-            sendTelegram("ERR: %s" % str(e))
+            if i<3:
+                print("ERR: %s" % str(e))
+                sendTelegram("ERR: %s" % str(e))
             ifail += 1
             if ifail==2:
                 break
     with sqlite3.connect(dbfilename) as con:
         nbafter = len(pd.read_sql("select 1 from immfut", con=con))
+    print("INFO: %s: had %d quotes now %d" % (ticker,nbbefore,nbafter))
     sendTelegram("%s: had %d quotes now %d" % (ticker,nbbefore,nbafter))
 
 def insertalltickers():
