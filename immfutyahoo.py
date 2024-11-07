@@ -62,10 +62,22 @@ def calcnext3rdimmfriday(dtnow,n=2,rolloffset=9):
         futcode.append("%s%d" % ("-FGHJKMNQUVXZ"[thirdfriday.month],thirdfriday.year%100))
     return futcode,futdates
 
-def calc_monthly_imm_codes(dtnow,n=12):
+#NG: Trading terminates on the 3rd last business day of the month prior to the contract month. 
+#CL: Trading terminates 3 business day before the 25th calendar day of the month prior to the contract month. If the 25th calendar day is not a business day, trading terminates 4 business days before the 25th calendar day of the month prior to the contract month.
+#HG: Trading terminates at 12:00 Noon CT on the third last business day of the contract month.
+#ZC: Trading terminates on the business day prior to the 15th calendar day of the contract month.
+#LBR: Trading terminates at 12:05 p.m. CT on the business day prior to the 16th day of the contract month
+#ALI: Trading terminates on the third last business day of the contract month.
+#CC: Trading terminates on the day immediately preceding the first notice day of the corresponding trading month of Cocoa futures at ICE Futures U.S.
+#LE:Trading terminates at 12:00 Noon CT on the last business day of the contract month.
+#BZ:Trading in the February contract month terminates on the 3rd last London and U.S. business day of the month, 2 months prior to the contract month. Trading in all other contract months terminates on the 2nd last London and U.S. business day of the month, 2 months prior to the contract month.
+def calc_monthly_imm_codes(dtnow,ticker,n=12):
     mt = dtnow.month
     yr = dtnow.year
     moffset = 0 if dtnow.day<10 else 1
+    maturepreviousmonth = {'NG','CL','HG','ZC','LBR','ALI','LE','BZ'}
+    if ticker in maturepreviousmonth:
+        moffset += 1
     futcode= []
     for i in range(moffset,moffset+12):
         mtadd = i%12
@@ -190,13 +202,13 @@ def get_futjson_data(ticker):
     if os.path.exists(filename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
         print("INFO: %s found" % filename)
-        if filehours<1:
+        if filehours<0.5:
             with open(filename,"r") as f:
                 return json.load(f)
     if os.path.exists(errfilename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(errfilename))/3600
         print("INFO: %s found" % filename)
-        if filehours<1:
+        if filehours<2:
             raise Exception("ERR: %s occurred less than 2 hours ago" % errfilename)
     sleeptime = random.uniform(1,2)
     print("INFO: %s in %.2fsec" % (url,sleeptime))
@@ -244,9 +256,9 @@ def getimmtickdics():
     immtickdic = {}
     for i,r in tickers.iterrows():
         dtnow = dt.datetime.utcnow()
-        futcode = calc_monthly_imm_codes(dtnow,n=12)
         ticker = r['ticker']
         radical = ticker[:ticker.find("=F")]
+        futcode = calc_monthly_imm_codes(dtnow,radical,n=12)
         symbols = [radical+f+"."+r["exchg"] for f in futcode if f[0] in r['code']]
         immtickdic[ticker] = symbols
     return immtickdic
