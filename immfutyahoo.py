@@ -30,13 +30,12 @@ utctz   = pytz.timezone("UTC")
 def get_metadata():
     return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
 def sendTelegram(text):
-    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdownv2'}
+    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdown'}  
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
     
 if isCMEClosed():
     print("INFO: market closed")
-    sendTelegram("test\n|a|b|\n|---|---|\n|1|0|\n")
     exit()
 
 def isImmMonth(date):
