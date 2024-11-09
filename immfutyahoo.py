@@ -15,6 +15,14 @@ import matplotlib as mpl
 filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
+def isCMEClosed():
+    t1 = dt.datetime.now(pytz.timezone("America/Chicago"))
+    dow = t1.weekday()
+    cmecloseoffset = 4     # 17 chicago time is 7am offset by 4 hour to recover last 5 min of market
+    return dow==5 or (dow==4 and t1.hour>17+cmecloseoffset) or (dow==6 and t1.hour<18)
+if isCMEClosed():
+    print("INFO: market closed")
+    exit()
 remotedir = config.remotedir
 immcsvdir = config.dirname+"/immfutcsv/"
 outdir = config.dirname + "/immfutpics/"
