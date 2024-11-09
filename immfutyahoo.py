@@ -20,9 +20,6 @@ def isCMEClosed():
     dow = t1.weekday()
     cmecloseoffset = 4     # 17 chicago time is 7am offset by 4 hour to recover last 5 min of market
     return dow==5 or (dow==4 and t1.hour>17+cmecloseoffset) or (dow==6 and t1.hour<18)
-if isCMEClosed():
-    print("INFO: market closed")
-    exit()
 remotedir = config.remotedir
 immcsvdir = config.dirname+"/immfutcsv/"
 outdir = config.dirname + "/immfutpics/"
@@ -33,10 +30,14 @@ utctz   = pytz.timezone("UTC")
 def get_metadata():
     return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
 def sendTelegram(text):
-    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdown'}
+    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdownv2'}
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
     
+if isCMEClosed():
+    print("INFO: market closed")
+    sendTelegram("test\n|a|b|\n|---|---|\n|1|0|\n")
+    exit()
 
 def isImmMonth(date):
     return date.month%3==0 
