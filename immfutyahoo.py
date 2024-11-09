@@ -294,6 +294,7 @@ def getandinsertfutpandas(ticker,dbfilename):
         insert_df_to_table(df, "immfut", df.columns,con)
 
 def inserttickersymbols(ticker, symbols):
+    err = ""
     dbfilename = "%s/immfut/%s.db" % (dirname,ticker)
     schema(dbfilename)
     with sqlite3.connect(dbfilename) as con:
@@ -301,28 +302,35 @@ def inserttickersymbols(ticker, symbols):
     try:
         getandinsertfutpandas(ticker,dbfilename)
     except Exception as e:
-        print("ERR: %s" % str(e))
-        sendTelegram("ERR: %s" % str(e))
+        err += "%s\n" % str(e)
     ifail = 0
     for i,symbol in enumerate(symbols):
         try:
             getandinsertfutpandas(symbol,dbfilename)
         except Exception as e:
             if i<3:
-                print("ERR: %s" % str(e))
-                sendTelegram("ERR: %s" % str(e))
+                err += "%s\n" % str(e)
             ifail += 1
             if ifail==2:
                 break
     with sqlite3.connect(dbfilename) as con:
         nbafter = len(pd.read_sql("select 1 from immfut", con=con))
+    print(err)
     print("INFO: %s: had %d quotes now %d" % (ticker,nbbefore,nbafter))
-    sendTelegram("%s: had %d quotes now %d" % (ticker,nbbefore,nbafter))
+    return ticker,nbbefore,nbafter,err
 
 def insertalltickers():
     immtickdic = getimmtickdics()
+    errors = ""
+    out = "\n|ticker|before|after|\n|---|---:|---:|\n"
     for ticker,symbols in immtickdic.items():
-        inserttickersymbols(ticker, symbols)
+        ticker,nbbefore,nbafter,err = inserttickersymbols(ticker, symbols)
+        out += "|%s|%d|%d|\n" % (ticker,nbbefore,nbafter)
+        errors += err
+    sendTelegram(out)
+    if len(errors)>0:
+        sendTelegram("%s" % errors)
+
 
 ''' -------------------------------------------------------
 plot graphs
