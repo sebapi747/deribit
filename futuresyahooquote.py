@@ -10,9 +10,10 @@ filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
 
+    
 def sendTelegram(text):
     prefix = os.uname()[1]+":" + __file__ + ":"
-    params = {'chat_id': config.telegramchatid, 'text': prefix+text, 'parse_mode': 'HTML'}
+    params = {'chat_id': config.telegramchatid, 'text': prefix+text, 'parse_mode': 'markdown'}
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
     
@@ -62,4 +63,7 @@ def update_all_csv():
         save_to_csv(symbol,tz)
         
 if __name__ == "__main__":
-    update_all_csv()
+    try:
+        update_all_csv()
+    except Exception as e:
+        sendTelegram(str(e))
