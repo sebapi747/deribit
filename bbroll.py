@@ -62,13 +62,20 @@ def adjustrolls(ticker,df,n,graphix="I"):
     prerolldates = df.index[df["instrument_code_1"].shift(-1)==df["instrument_code_2"]]
     postrolldates = df.index[df["instrument_code_1"]==df["instrument_code_2"].shift(1)]
     rolladj = df["price_close_1"]-df["price_close_2"]
+    pnldf = pd.DataFrame({"price":df["price_close_1"],
+                          "pricechg":df["price_close_1"].diff(),
+                          "prevroll":rolladj.shift(1).loc[postrolldates]}).fillna(0)
+    pnldf["pnl"] = pnldf["pricechg"]+pnldf["prevroll"]
+    totret = np.mean(np.log(1+pnldf["pnl"]/pnldf["price"].shift()))*253
+    ret    = np.mean(np.log(1+pnldf["pricechg"]/pnldf["price"].shift()))*253
+    vol    = np.std(np.log(1+pnldf["pnl"]/pnldf["price"].shift()))*np.sqrt(253)
     pricechange = df["price_close_1"].diff().loc[postrolldates]
     for k in range(1,n+1):
         mycolor=(1-(k-1)/n,0,(k-1)/n,0.2)
         plt.scatter(pricechange,rolladj.shift(k).loc[postrolldates],color=mycolor,label="roll at -%d day" % k)
     plt.plot(pricechange,-pricechange,color="gray")
-    plt.xlabel("price change from %s to %s" % (str(df.index[0])[:10],str(df.index[-1])[:10]))
-    plt.ylabel("roll impact (neg is contango)")
+    plt.xlabel("price change from %s to %s ret=%.2f%%" % (str(df.index[0])[:10],str(df.index[-1])[:10],ret*100))
+    plt.ylabel("roll impact (neg is contango) roll=%.2f%%" % ((totret-ret)*100))
     plt.title("%s (%s) price change on roll date vs previous roll impact" % (ticker,tickers[ticker]))
     plt.legend()
     if graphix=="I":
@@ -84,7 +91,7 @@ def adjustrolls(ticker,df,n,graphix="I"):
         pnldf["pnl"] = pnldf["pricechg"]+pnldf["prevroll"]
         plt.plot(rolladj,label="roll impact %d day" % k,color=mycolor)
     plt.axhline(y=0,color="gray")
-    plt.title("Price change %s (%s) contract roll" % (ticker,tickers[ticker]))
+    plt.title("Price change %s (%s) contract roll rel=%.2f%%" % (ticker,tickers[ticker],(totret-ret)*100))
     plt.ylabel("negative is contango")
     plt.xlabel("from %s to %s" % (str(df.index[0])[:10],str(df.index[-1])[:10]))
     plt.legend()
@@ -100,10 +107,10 @@ def adjustrolls(ticker,df,n,graphix="I"):
         pnldf = pd.DataFrame({"pricechg":df["price_close_1"].diff(),"prevroll":rolladj}).fillna(0)
         pnldf["pnl"] = pnldf["pricechg"]+pnldf["prevroll"]
         plt.plot(df["price_close_1"].array[0]+np.cumsum(pnldf["pnl"]),
-                 label="%d day roll adjusted price" % k,color=mycolor)
-    plt.plot(df["price_close_1"],label="on the run price",color="green")
+                 label=("%d day roll" % k)+(" r=%.2f%%" % (totret*100) if k==1 else ""),color=mycolor)
+    plt.plot(df["price_close_1"],label="on-the-run r=%.2f%%" % (ret*100),color="green")
     plt.axhline(y=0,color="gray")
-    plt.title("Price and PnL for %s (%s)" %(ticker,tickers[ticker]))
+    plt.title("Price and PnL for %s (%s) r=%.2f%% s=%.2f" %(ticker,tickers[ticker],totret*100,totret/vol))
     plt.xlabel("from %s to %s" % (str(df.index[0])[:10],str(df.index[-1])[:10]))
     plt.legend()
     if graphix=="I":
