@@ -82,7 +82,7 @@ def checkmining(btcaddress):
     oddsperblock      = myhashperblock/totalhashperblock
     soloblockyear     = 1/(365*24*6*oddsperblock)
     #poolbalance = getmybtcpayout(payoutsnap)
-    balances = "pool balance=%.8fBTC (%.2f days of mining) theo from hash=%.8fBTC/day" % (poolbalance,poolbalance/btcperday,btcperday)
+    balances = "btc=%.0f hash=%.8fBTC/day" % (answer['data']['market_price_usd'],btcperday)
     rates = "reward/yr=%.2fUSD (%.8fBTC) elec/yr=%.2f (%.2fUSD/kWh) solo=%.1f years/block" % (usdperday*365,btcperday*365,usdelecperday*365,eleckWhprice,soloblockyear)
     sendTelegram(balances+"\n"+rates)
     print(balances+"\n"+rates)
