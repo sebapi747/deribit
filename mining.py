@@ -84,7 +84,7 @@ def checkmining(btcaddress):
     #poolbalance = getmybtcpayout(payoutsnap)
     balances = "btc=%.0f hash=%.8fBTC/day" % (answer['data']['market_price_usd'],btcperday)
     rates = "reward/yr=%.2fUSD (%.8fBTC) elec/yr=%.2f (%.2fUSD/kWh) solo=%.1f years/block" % (usdperday*365,btcperday*365,usdelecperday*365,eleckWhprice,soloblockyear)
-    sendTelegram(balances+"\n"+rates+'\n[public-pool.io](https://public-pool.io:40557/api/client/%s)' % btcaddress)
+    sendTelegram(balances+"\n"+rates+'\n[public-pool.io](https://web.public-pool.io/#/app/%s)' % btcaddress)
     print(balances+"\n"+rates)
     dic = {"btcperday":btcperday,'usdperday':usdperday,"myhashrate":myhashrate,"tutc":dt.datetime.utcnow()}
     filename =  "%s/bitaxe/bitaxe.csv" % (config.dirname)
