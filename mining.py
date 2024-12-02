@@ -12,7 +12,7 @@ btcaddress = "bc1qgcvc74jydsuz89675d9se5v6klmwl564qdmnzu"
 
 def sendTelegram(text):
     f = __file__
-    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1]+":"+f+":ALERT:" +text, 'parse_mode': 'HTML'}
+    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1]+":"+f+":ALERT:" +text, 'parse_mode': 'markdown'}
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
     
@@ -84,7 +84,7 @@ def checkmining(btcaddress):
     #poolbalance = getmybtcpayout(payoutsnap)
     balances = "btc=%.0f hash=%.8fBTC/day" % (answer['data']['market_price_usd'],btcperday)
     rates = "reward/yr=%.2fUSD (%.8fBTC) elec/yr=%.2f (%.2fUSD/kWh) solo=%.1f years/block" % (usdperday*365,btcperday*365,usdelecperday*365,eleckWhprice,soloblockyear)
-    sendTelegram(balances+"\n"+rates)
+    sendTelegram(balances+"\n"+rates+'\n[public-pool.io](https://public-pool.io:40557/api/client/%s)' % btcaddress)
     print(balances+"\n"+rates)
     dic = {"btcperday":btcperday,'usdperday':usdperday,"myhashrate":myhashrate,"tutc":dt.datetime.utcnow()}
     filename =  "%s/bitaxe/bitaxe.csv" % (config.dirname)
@@ -99,6 +99,6 @@ def checkmining(btcaddress):
 if __name__ == "__main__":
     try:
         checkmining(btcaddress)
-    except Exception as e:
+    except (Exception,ZeroDivisionError) as e:
         sendTelegram("ERR: "+str(e))
         raise
