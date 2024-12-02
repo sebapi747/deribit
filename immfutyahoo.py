@@ -310,14 +310,14 @@ def inserttickersymbols(ticker, symbols):
     try:
         getandinsertfutpandas(ticker,dbfilename)
     except Exception as e:
-        err += "%s\n" % str(e)
+        err += "\n%s" % str(e)
     ifail = 0
     for i,symbol in enumerate(symbols):
         try:
             getandinsertfutpandas(symbol,dbfilename)
         except Exception as e:
             if i<3:
-                err += "%s\n" % str(e)
+                err += "\n%s" % str(e)
             ifail += 1
             if ifail==2:
                 break
@@ -335,10 +335,7 @@ def insertalltickers():
         ticker,nbbefore,nbafter,err = inserttickersymbols(ticker, symbols)
         out += "|%s|%d|%d|\n" % (ticker,nbbefore,nbafter)
         errors += err
-    sendTelegram(out)
-    if len(errors)>0:
-        sendTelegram("%s" % errors)
-
+    sendTelegram(out+errors)
 
 ''' -------------------------------------------------------
 plot graphs
