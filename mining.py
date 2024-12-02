@@ -53,7 +53,7 @@ def oceanmining(btcaddress):
 
 def poolio(btcaddress):
     url = "https://public-pool.io:40557/api/client/%s" % btcaddress
-    x = requests.get(url)
+    x = requests.get(url,verify=False)
     if x.status_code!=200:
         raise Exception("ERR:%s %d" % (url,x.status_code))
     myjson = x.json()
