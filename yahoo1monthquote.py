@@ -44,7 +44,7 @@ def insert_dic_to_table(dic, tablename, con):
 
 
 def get_jsonfilename(ticker):
-    return "json/%s.json" % (ticker)
+    return "json1mo/%s.json" % (ticker)
 def get_json_data(ticker):
     events = "events=capitalGain%7Cdiv%7Csplit"
     period2 = dt.datetime.utcnow()
