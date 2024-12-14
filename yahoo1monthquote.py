@@ -123,6 +123,8 @@ def inserttickerdb(jsondata):
         insert_dic_to_table(dic,tablename="yahoo_latest_price",con=db5)
         quotes = getquotes(jsondata)
         insert_df_to_table(quotes,"yahoo_quote_1mo",quotes.columns,db5)
+        if "=X"==dic["symbol"][-2:]:
+            return ""
         try:
             divs = getdividend(jsondata)
             insert_df_to_table(divs,"yahoo_div",divs.columns,db5)
@@ -143,6 +145,8 @@ def getalltickerdata():
     yahoo1dbarschema()
     with open("goodtickers.json","r") as f:
         tickers = json.load(f)
+    ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
+    tickers = tickers + [c+"=X" for c in ccys]
     errmsg = ""
     for i,t in enumerate(tickers):
         try:
@@ -152,5 +156,4 @@ def getalltickerdata():
     sendTelegram("retrieved %d tickers%s" % (len(tickers),errmsg))
 
 if __name__ == "__main__":
-    #os.system("mkdir json sql")
     getalltickerdata()
