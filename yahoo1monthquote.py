@@ -54,8 +54,8 @@ def get_json_data(ticker):
     errfilename = filename.replace(".json",".err")
     if os.path.exists(filename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
-        print("INFO: %s found" % filename, end="\r")
-        if filehours<0.5:
+        print("INFO: %s found                        " % filename, end="\r")
+        if filehours<12:
             with open(filename,"r") as f:
                 return json.load(f)
     if os.path.exists(errfilename):
@@ -117,7 +117,6 @@ def getprice(jsondata):
     return dic
 
 def inserttickerdb(jsondata):
-    errmsg = ""
     with sqlite3.connect("sql/yahoo.db") as db5:
         dic = getprice(jsondata)
         insert_dic_to_table(dic,tablename="yahoo_latest_price",con=db5)
@@ -129,13 +128,12 @@ def inserttickerdb(jsondata):
             divs = getdividend(jsondata)
             insert_df_to_table(divs,"yahoo_div",divs.columns,db5)
         except:
-            errmsg += ("\nERR: nodiv for "+dic["symbol"])
+            print("WARN: nodiv for "+dic["symbol"])
         try:
             splits = getsplit(jsondata)
             insert_df_to_table(splits,"yahoo_split",splits.columns,db5)
         except:
-            errmsg += ("\nERR: nosplit for "+dic["symbol"])
-    return errmsg
+            print("WARN: nosplit for "+dic["symbol"])
 
 def getonetickerdata(ticker):
     jsondata = get_json_data(ticker)
@@ -150,10 +148,12 @@ def getalltickerdata():
     errmsg = ""
     for i,t in enumerate(tickers):
         try:
-            errmsg += getonetickerdata(t)
+            getonetickerdata(t)
         except Exception as e:
             errmsg += "\nERR: error for %s %s" % (t,str(e))
-    sendTelegram("retrieved %d tickers%s" % (len(tickers),errmsg))
+    msg = "INFO:retrieved %d tickers%s" % (len(tickers),errmsg)
+    print(msg)
+    sendTelegram(msg)
 
 if __name__ == "__main__":
     getalltickerdata()
