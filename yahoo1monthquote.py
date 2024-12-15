@@ -144,7 +144,7 @@ def getalltickerdata():
     with open("goodtickers.json","r") as f:
         tickers = json.load(f)
     ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
-    tickers = tickers + [c+"=X" for c in ccys]
+    tickers = [c+"=X" for c in ccys] + tickers
     errmsg = ""
     for i,t in enumerate(tickers):
         try:
