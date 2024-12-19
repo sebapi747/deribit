@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
-outplot = "pics/"
+outplot = config.dirname+"/pics/"
   
 def get_metadata():
     return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
@@ -197,5 +197,5 @@ def getceftickerdata():
     sendTelegram(msg)
 
 if __name__ == "__main__":
-    getalltickerdata()
     getceftickerdata()
+    getalltickerdata()
