@@ -38,6 +38,14 @@ DOT-USD,Polkadot,crypto,UTC
 SOL-USD,Solana,crypto,UTC
 BNB-USD,Bnb,crypto,UTC
 MATIC-USD,Matic,crypto,UTC
+LTC-USD,Litecoin,crypto,UTC
+ADA-USD,ADA,crypto,UTC
+UNI-USD,Uniswap,crypto,UTC
+TRX-USD,TRX,crypto,UTC
+LINK-USD,Chainlink,crypto,UTC
+AVAX-USD,Avalanche,crypto,UTC
+XRP-USD,Ripple,crypto,UTC
+DOGE-USD,Doge,crypto,UTC
 6E=F,Euro,fxfut,America/New_York
 6A=F,Aussie,fxfut,America/New_York
 6C=F,CAD,fxfut,America/New_York
