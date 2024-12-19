@@ -170,7 +170,7 @@ def getquote(ticker):
 
 def plot_cef():
     quote = getquote("SPY")
-    tickers = ["ADX","EOS","BXMX","CSQ","GDV","BDJ"]
+    tickers = ["ADX","EOS","BXMX","CSQ","GDV","BDJ","PEO","BCX"]
     for ticker in tickers:
         quote = quote.join(getquote(ticker),how="inner")
     for c in quote.columns:
@@ -185,7 +185,7 @@ def plot_cef():
 def getceftickerdata():
     yahoo1dbarschema()
     cefdf = pd.read_csv("cef.csv")
-    tickers = ["SPY","GLD","TLT"] + list(cefdf["symbol"])
+    tickers = ["SPY","GLD","TLT","EOI","PEO","BCX"] + list(cefdf["symbol"])
     errmsg = ""
     for i,t in enumerate(tickers):
         try:
