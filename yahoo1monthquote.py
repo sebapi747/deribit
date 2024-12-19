@@ -143,62 +143,8 @@ def getalltickerdata():
     yahoo1dbarschema()
     with open("goodtickers.json","r") as f:
         tickers = json.load(f)
-    postickers = ['1618.HK',
-    'APAM.AS',
-    'U13.SI',
-    'BOLSAA.MX',
-    'RRTL.DE',
-    'PAGE.L',
-    'LIF.TO',
-    '603505.SS',
-    '2145.HK',
-    'FOXA',
-    'CSNA3.SA',
-    'VPBN.SW',
-    '603129.SS',
-    'NTR.TO',
-    'GISSAA.MX',
-    '0941.HK',
-    'RIO.L',
-    'YAR.OL',
-    'BAP',
-    'UNTR.JK',
-    'FLUX.BR',
-    'MOL.BD',
-    'VTA.AS',
-    '8926.TW',
-    'EC',
-    'MSA.TO',
-    'AMAG.VI',
-    '1044.HK',
-    'CPS.WA',
-    '1459.HK',
-    'CSW-A.TO',
-    'AAF.L',
-    '002475.SZ',
-    '002714.SZ',
-    '0867.HK',
-    '3838.HK',
-    '1203.HK',
-    'ALC.TO',
-    'HLF',
-    'BFF.MI',
-    'AKTIA.HE',
-    'SQM',
-    '1199.HK',
-    '0386.HK',
-    'BUR.PA',
-    '1184.HK',
-    'GFNORTEO.MX',
-    'NOEJ.DE',
-    'TXT.WA',
-    'FDM.L',
-    '5423.T',
-    'EGG.AX',
-    'FC.TO',
-    '2877.HK',
-    '0506.HK',
-    'KAMUX.HE']
+    with open("posticker.json","r") as f:
+        postickers = json.load(f)
     ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
     tickers = postickers + [c+"=X" for c in ccys] + tickers
     errmsg = ""
@@ -211,5 +157,20 @@ def getalltickerdata():
     print(msg)
     sendTelegram(msg)
 
+def getceftickerdata():
+    yahoo1dbarschema()
+    cefdf = pd.read_csv("cef.csv")
+    tickers = cefdf["symbol"]
+    errmsg = ""
+    for i,t in enumerate(tickers):
+        try:
+            getonetickerdata(t)
+        except Exception as e:
+            errmsg += "\nERR: error for %s %s" % (t,str(e))
+    msg = "INFO:getceftickerdata retrieved %d tickers%s" % (len(tickers),errmsg)
+    print(msg)
+    sendTelegram(msg)
+
 if __name__ == "__main__":
     getalltickerdata()
+    getceftickerdata()
