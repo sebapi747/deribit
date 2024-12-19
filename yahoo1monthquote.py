@@ -4,10 +4,15 @@ import pandas as pd
 import random
 import requests
 import numpy as np
+from matplotlib import pyplot as plt
 filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
+outplot = "pics/"
   
+def get_metadata():
+    return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
+
 def sendTelegram(text):
     params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdown'}  
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
@@ -157,10 +162,29 @@ def getalltickerdata():
     print(msg)
     sendTelegram(msg)
 
+def getquote(ticker):
+    with sqlite3.connect("sql/yahoo.db") as db5:
+        quote = pd.read_sql("select * from yahoo_quote_1mo where ticker=?", con=db5,params=[ticker])
+        quote["quotedate"] = pd.to_datetime(quote["quotedate"])
+        return quote.set_index("quotedate").rename(columns={"adjclose":ticker})[[ticker]]
+
+def plot_cef():
+    quote = getquote("SPY")
+    tickers = ["ADX","EOS","BXMX","CSQ","GDV","BDJ"]
+    for ticker in tickers:
+        quote = quote.join(getquote(ticker),how="inner")
+    for c in quote.columns:
+        quote[c] /= quote[c].array[0]
+    plt.plot(quote)
+    plt.legend(labels=quote.columns)
+    plt.title("CEF Total Return")
+    plt.savefig(outplot+"cefquote.png",metadata=get_metadata())
+    plt.close()
+    
 def getceftickerdata():
     yahoo1dbarschema()
     cefdf = pd.read_csv("cef.csv")
-    tickers = cefdf["symbol"]
+    tickers = ["SPY","GLD","TLT"] + list(cefdf["symbol"])
     errmsg = ""
     for i,t in enumerate(tickers):
         try:
@@ -168,6 +192,7 @@ def getceftickerdata():
         except Exception as e:
             errmsg += "\nERR: error for %s %s" % (t,str(e))
     msg = "INFO:getceftickerdata retrieved %d tickers%s" % (len(tickers),errmsg)
+    plot_cef()
     print(msg)
     sendTelegram(msg)
 
