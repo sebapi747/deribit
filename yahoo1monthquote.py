@@ -177,6 +177,7 @@ def plot_cef():
         quote[c] /= quote[c].array[0]
     plt.plot(quote)
     plt.legend(labels=quote.columns)
+    plt.xlabel("from %s to %s" % (str(quote.index.array[0])[:10],str(quote.index.array[-1])[:10]))
     plt.title("CEF Total Return")
     plt.savefig(outplot+"cefquote.png",metadata=get_metadata())
     plt.close()
