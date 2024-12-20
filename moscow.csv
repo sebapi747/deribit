@@ -1,0 +1,120 @@
+ticker,corpname,mktcap,quote
+MISX-GAZP,Public Joint Stock Company Gazprom,44587.56,198.0
+MISX-ROSN,Public Joint Stock Company Rosneft Oil Company,31774.97,351.2
+MISX-SBER,Sberbank of Russia,28509.8,133.3
+MISX-NVTK,PAO NOVATEK,28311.52,876.65
+MISX-LKOH,PJSC LUKOIL,25788.31,3911.0
+MISX-GMKN,Public Joint Stock Company Mining and Metallurgical Company Norilsk Nickel,24342.09,1.59
+MISX-SIBN,Public Joint Stock Company Gazprom Neft,17537.78,390.3
+MISX-PHOR,Public Joint-Stock Company PhosAgro,9779.27,7929.0
+MISX-SNGS,Surgutneftegas Public Joint Stock Company,8844.89,25.19
+MISX-TATN,PJSC Tatneft,8718.48,377.19
+MISX-TRNFP,Public Joint Stock Company Transneft,8537.11,1131.53
+MISX-PLZL,Public Joint Stock Company Polyus,7557.83,79.77
+MISX-CHMF,Public Joint Stock Company Severstal,6553.47,821.4
+MISX-AKRN,Public Joint Stock Company Acron,6357.09,18362.0
+MISX-VSMO,"Public Stock Company ""VSMPO-AVISMA Corporation""",6269.99,57180.0
+MISX-IRKT,Public Joint Stock Company Yakovlev,5981.16,54.7
+MISX-UNAC,Public Joint Stock Company United Aircraft Corporation,5954.74,0.63
+MISX-TCSG,International Public Joint-Stock Company TCS Holding,4899.8,2013.0
+MISX-VTBR,VTB Bank (public joint-stock company),4815.02,94.15
+MISX-PIKK,Public Joint Stock Company PIK-specialized homebuilder,4758.83,757.0
+MISX-ALRS,Public Joint Stock Company ALROSA,4591.44,66.84
+MISX-MTSS,Mobile TeleSystems Public Joint Stock Company,4415.01,241.2
+MISX-MFON,Public Joint Stock Company MegaFon,3841.7,537.7
+MISX-HYDR,Public Joint-Stock Company Federal Hydro-Generating Company - RusHydro,3371.77,0.8
+MISX-MAGN,Public Joint Stock Company Magnitogorsk Iron & Steel Works,3352.36,31.5
+MISX-MGNT,Public Joint Stock Company Magnit,2868.4,4439.0
+MISX-IRAO,Public Joint Stock Company Inter RAO UES,2279.27,3.4
+MISX-RTKM,Public Joint Stock Company Rostelecom,2124.96,61.98
+MISX-RASP,Public Joint Stock Company Raspadskaya,1886.28,297.5
+MISX-MOEX,Public Joint-Stock Company Moscow Exchange MICEX-RTS,1837.34,85.2
+MISX-FEES,Public Joint-Stock Company Federal Grid Company of Unified Energy System,1801.19,0.09
+MISX-ROSB,Public joint stock company ROSBANK,1650.9,111.73
+MISX-BANE,Public Joint Stock Oil Company Bashneft,1619.34,1046.49
+MISX-CBOM,Credit Bank of Moscow (public joint-stock company),1613.23,4.94
+MISX-SMLT,Samolet Group Public Joint Stock Company,1510.13,2707.91
+MISX-AFKS,Sistema Public Joint Stock Financial Corporation,1384.9,15.12
+MISX-NKNC,Public Joint Stock Company Nizhnekamskneftekhim,1360.6,79.55
+MISX-UWGN,Public Joint Stock Company Research and Production Corporation United Wagon Company,1309.05,47.3
+MISX-SGZH,Group of Companies Segezha Public Joint Stock Company,1217.71,8.15
+MISX-KZOS,Kazan Public Joint Stock Company Organichesky sintez,1195.8,70.34
+MISX-RSTI,"Rosseti, Public Joint Stock Company",1153.71,0.6
+MISX-TRCN,Public Joint Stock Company Center for Cargo Container Traffic TransContainer,1137.41,4871.42
+MISX-MGTS,Public Joint Stock Company Moscow City Telephone Network,1115.94,1470.0
+MISX-GCHE,"Public Joint Stock Company ""Cherkizovo Group""",1065.82,2650.5
+MISX-AFLT,Public Joint Stock Company Aeroflot - Russian Airlines,1032.51,27.6
+MISX-NMTP,Public Joint Stock Company Novorossiysk Commercial Sea Port,982.53,0.05
+MISX-APTK,Public Joint-Stock Company Pharmacy Chain 36.6,905.5,12.5
+MISX-UPRO,Public Joint-Stock Company Unipro,882.1,1.47
+MISX-FLOT,PAO Sovcomflot,873.49,0.37
+MISX-YAKG,Public Joint Stock Company Yakutsk Fuel and Energy Company,860.01,109.2
+MISX-FESH,Far-Eastern Shipping Company PLC.,857.28,30.5
+MISX-LENT,Lenta International public joint-stock company,761.65,689.5
+MISX-OGKB,"Public Joint-Stock Company ""Second Generating Company of the Electric Power Wholesale Market""",760.57,0.59
+MISX-MSNG,Public Joint Stock Company Mosenergo,731.4,1.93
+MISX-LSNG,Public Joint stock company Rosseti Lenenergo,689.63,6.9
+MISX-AVAN,AVANGARD Joint Stock BANK,657.14,855.0
+MISX-KAZT,Public Joint Stock Company KuibyshevAzot,650.96,400.6
+MISX-IRGZ,Irkutsk Public Joint Stock Company of Energetics and Electrification,636.49,14.02
+MISX-TRMK,PAO TMK,611.37,52.6
+MISX-KMAZ,KAMAZ Publicly Traded Company,586.89,90.5
+MISX-RGSS,Rosgosstrakh Insurance Company (Public Joint Stock Company),585.55,0.12
+MISX-POSI,Public Joint Stock Company Positive Group,546.62,869.6
+MISX-LSRG,PJSC LSR Group,536.55,546.8
+MISX-INGR,"Public Joint Stock Company ""INGRAD""",499.58,1273.0
+MISX-MTLR,Mechel PAO,470.13,121.95
+MISX-DSKY,Public Joint Stock Company Detsky Mir,461.08,75.2
+MISX-AQUA,Public Joint Stock Company Inarctica,426.5,514.5
+MISX-MSRS,"Public Joint-Stock Company ""Rosseti Moscow Region""",408.22,0.88
+MISX-SELG,Seligdar Public Joint-Stock Company,393.37,40.1
+MISX-GAZT,Public Joint-Stock Company GAZ-Tek,381.64,82.59
+MISX-UKUZ,Southern Kuzbass Coal company Public joint-stock company,352.16,1024.0
+MISX-MVID,"Public Joint Stock Company ""M.video""",343.18,202.0
+MISX-MFGS,"Public Joint Stock Company ""Slavneft-Megionneftegas""",327.28,276.0
+MISX-TGKA,"Public Joint Stock Company ""Territorial Generating Company No. 1"" ",310.92,
+MISX-BELU,NovaBev Group PJSC,305.07,2520.0
+MISX-BSPB,Bank Saint-Petersburg Public Joint Stock Company,304.21,69.81
+MISX-SFIN,"Public Joint Stock Company ""SFI""",293.58,613.6
+MISX-RENI,Renaissance Insurance Group JSC,250.63,47.25
+MISX-MRKS,Public Joint Stock Company Interregional Distribution Grid Company of Siberia,242.46,0.27
+MISX-USBN,Public joint stock company BANK URALSIB,235.49,0.07
+MISX-TGKD,"Public Joint Stock Company ""Quadra - Power Generation""",230.14,0.01
+MISX-RNFT,Public Joint Stock Company RussNeft,228.85,88.8
+MISX-VJGZ,Public Joint Stock Company Varyoganneftegaz,222.61,1292.0
+MISX-KUBE,Rosseti Kuban PJSC,216.14,56.9
+MISX-MSTT,Public Joint Stock Company Mostotrest,215.56,80.2
+MISX-NKHP,Public Joint Stock Company Novorossyisk Grain Plant,197.0,306.0
+MISX-MRKK,"Public Joint Stock Company ""ROSSETI Northern Caucasus""",195.38,9.8
+MISX-MRKP,Public Joint stock company Rosseti Centre and Volga region,193.31,0.18
+MISX-ROLO,Public Joint Stock Company Rusolovo,192.58,0.67
+MISX-SPBE,Public Joint-Stock Company SPB Exchange,179.03,141.5
+MISX-ABRD,Public Joint Stock Company Abrau-Durso,163.34,175.0
+MISX-ELFV,Public Joint-Stock Company EL5-Energo,161.37,0.48
+MISX-UCSS,Public Joint Stock Company United Credit Systems,159.26,705.0
+MISX-JNOS,Public Joint Stock Company Slavneft-Yaroslavnefteorgsintez,156.75,14.2
+MISX-DVEC,Public joint stock company FAR-EASTERN ENERGY COMPANY,140.93,0.86
+MISX-MRKU,"Interregional Distribution Grid Company of Urals, Joint Stock Company ",126.24,
+MISX-BLNG,Belon Joint Stock Company,109.74,10.02
+MISX-CHMK,Chelyabinsk Metallurgical Plant PAO,101.34,3365.0
+MISX-RKKE,S.P. Korolev Rocket and Space Public Corporation Energia Open Joint Stock Company,100.39,5820.0
+MISX-MRKC,Public Joint Stock Company Rosseti Centre,99.15,0.25
+MISX-TTLK,Tattelecom Public Joint-Stock Company,98.36,0.49
+MISX-KRKO,Public Joint Stock Company The Taganrog Boiler-Making Works Krasny Kotelshchik,97.02,11.8
+MISX-GEMA,International Medical Center of Biomaterials Processing and Cryostorage Public Joint-stock company,95.55,672.0
+MISX-TNSE,Public Joint Stock Company Group of Companies TNS energo,91.77,705.0
+MISX-KOGK,Korshynov Mining Plant Public Joint Stock Company ,83.85,
+MISX-AMEZ,"Public Joint Stock Company ""Ashinskiy metallurgical works"" ",79.26,
+MISX-KRKN,Public Joint Stock Company Saratov Oil Refinery ,55.57,
+MISX-MRKV,Public Joint Stock Company Rosseti Volga ,54.34,
+MISX-SVAV,Sollers Public Joint Stock Company ,53.23,
+MISX-MGNZ,Open joint stock company Solikamsk magnesium works ,39.6,
+MISX-RTGZ,Public Joint Stock Company Gazprom Gazoraspredelenie Rostov-na-Donu,27.26,23800.0
+MISX-YKEN,Public joint stock company Yakutskenergo ,26.39,
+MISX-NKSH,PJSC Nizhnekamskshina ,14.37,
+MISX-TORS,public-stock company Tomsk distribution company ,10.72,
+MISX-VGSB,Volgogradenergosbyt Public Joint-Stock Company ,10.35,
+MISX-ENPG,En+ Group International Public Joint-Stock Company ,,
+MISX-CHGZ,Public Joint Stock Company RN-Western Siberia ,,
+MISX-RUAL,,,
+MISX-NLMK,,,

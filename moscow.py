@@ -8,6 +8,8 @@ filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
 dirname = config.dirname+"/moscow/price/"
+outdir = config.dirname+"/moscow/pics/"
+remotedir = config.remotedir
 
 def get_outputdir():
     Path(dirname).mkdir(parents=True, exist_ok=True)
@@ -58,8 +60,51 @@ def get_all_prices(page):
     if len(price)<60:
         sendTelegram("expected 70 quotes, got only:"+len(price))
 
+
+def plot_moscow():
+    moscowdir = "moscow/price/"
+    moscdf = pd.read_csv("moscow.csv")
+    corpname = {}
+    for i,r in moscdf.iterrows():
+        c = str(r["corpname"])
+        for s in ["Public Joint Stock Company","Public Joint-Stock Company","public joint-stock company",
+                 "Public Joint-stock company","Public Joint stock company"]:
+            c = c.replace(s,"PJSC")
+        for s in ["Public Stock Company"]:
+            c = c.replace(s,"PSC")
+        for s in ["Public Joint Stock"]:
+            c = c.replace(s,"PJS")
+        for s in ["Joint Stock Company"]:
+            c = c.replace(s,"JSC")
+        corpname[r["ticker"][5:]] = c
+    tickers = [f[:-4] for f in os.listdir(moscowdir) if ".csv" in f and f[:-4] in corpname.keys()]
+    tickers = [f for f in corpname.keys() if f in tickers]
+    tlists = np.array_split(tickers,len(tickers)//5)
+    for tlist in tlists:
+        print(tlist)
+        for i,ticker in enumerate(tlist):
+            with sqlite3.connect("../ib/sql/yahoo.db") as db:
+                df = pd.read_sql("select * from yahoo_quote where ticker=?",con=db,params=[ticker+".ME"])
+                df["Date"] = pd.to_datetime(df["Date"])
+                df = df.set_index("Date")[["Close"]].rename(columns={"Close":"quote"})
+            df2 = pd.read_csv(moscowdir+ticker+".csv")
+            df2["lastupdated"] = pd.to_datetime(df2["lastupdated"])
+            df2 = df2.set_index("lastupdated")[["quote"]]
+            df = pd.concat([df,df2])
+            df["quote"] /= df["quote"].array[0]
+            plt.plot(df,label="%s %s" % (ticker,corpname[ticker]))
+        plt.legend()
+        plt.title("Quote")
+        plt.show()
+        plt.savefig(outdir+"moscowquote-%d.png" % i)
+        plt.close()
+    print("INFO: rsync -avzhe ssh ",outdir,remotedir)
+    os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
+    sendTelegram("updated moscow exchg")
+
 if __name__ == "__main__":
     get_outputdir()
     page = ChromiumPage()
     get_all_prices(page)
+    plot_moscow()
     page.quit()
