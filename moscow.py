@@ -1,8 +1,10 @@
-import json, time, os
+import json, time, os,sqlite3
 import pandas as pd
+import numpy as np
 import datetime as dt
 from pathlib import Path
 import requests
+import matplotlib.pyplot as plt
 from DrissionPage import ChromiumPage
 filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
@@ -62,7 +64,7 @@ def get_all_prices(page):
 
 
 def plot_moscow():
-    moscowdir = "moscow/price/"
+    moscowdir = dirname
     moscdf = pd.read_csv("moscow.csv")
     corpname = {}
     for i,r in moscdf.iterrows():
@@ -80,9 +82,9 @@ def plot_moscow():
     tickers = [f[:-4] for f in os.listdir(moscowdir) if ".csv" in f and f[:-4] in corpname.keys()]
     tickers = [f for f in corpname.keys() if f in tickers]
     tlists = np.array_split(tickers,len(tickers)//5)
-    for tlist in tlists:
-        print(tlist)
-        for i,ticker in enumerate(tlist):
+    for i,tlist in enumerate(tlists):
+        print("INFO:",i,tlist)
+        for ticker in tlist:
             with sqlite3.connect("../ib/sql/yahoo.db") as db:
                 df = pd.read_sql("select * from yahoo_quote where ticker=?",con=db,params=[ticker+".ME"])
                 df["Date"] = pd.to_datetime(df["Date"])
@@ -95,7 +97,7 @@ def plot_moscow():
             plt.plot(df,label="%s %s" % (ticker,corpname[ticker]))
         plt.legend()
         plt.title("Quote")
-        plt.show()
+        #plt.show()
         plt.savefig(outdir+"moscowquote-%d.png" % i)
         plt.close()
     print("INFO: rsync -avzhe ssh ",outdir,remotedir)
