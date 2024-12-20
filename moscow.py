@@ -26,7 +26,7 @@ def sendMail(msg):
               "subject": msg,
               "text": msg})
 def sendTelegram(text):
-    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1]+":"+__file__+":ALERT:" +text, 'parse_mode': 'HTML'}
+    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1]+":"+__file__+":ALERT:" +text, 'parse_mode': 'markdown'}
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
     
@@ -103,7 +103,7 @@ def plot_moscow():
         plt.close()
     print("INFO: rsync -avzhe ssh ",outdir,remotedir)
     os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
-    sendTelegram("updated moscow exchg")
+    sendTelegram("updated [moscow quotes](https://www.markowitzoptimizer.pro/blog/39)")
 
 if __name__ == "__main__":
     get_outputdir()
