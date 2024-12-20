@@ -95,6 +95,7 @@ def plot_moscow():
             df = pd.concat([df,df2])
             df["quote"] /= df["quote"].array[0]
             plt.plot(df,label="%s %s" % (ticker,corpname[ticker]))
+            plt.xlabel("from %s to %s" % (str(df.index.array[0])[:10],str(df.index.array[-1])[:10]))
         plt.legend()
         plt.title("Quote")
         #plt.show()
