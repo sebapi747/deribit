@@ -150,7 +150,7 @@ def getalltickerdata():
         tickers = json.load(f)
     with open("posticker.json","r") as f:
         postickers = json.load(f)
-    ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
+    ccys = ["HUF","PEN","AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
     tickers = postickers + [c+"=X" for c in ccys] + tickers
     errmsg = ""
     for i,t in enumerate(tickers):
