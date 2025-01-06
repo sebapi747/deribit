@@ -192,7 +192,7 @@ def getceftickerdata():
             getonetickerdata(t)
         except Exception as e:
             errmsg += "\nERR: error for %s %s" % (t,str(e))
-    msg = "INFO:getceftickerdata retrieved %d tickers%s" % (len(tickers),errmsg)
+    msg = "INFO:getceftickerdata retrieved %d tickers%s see [cef blog](https://www.markowitzoptimizer.pro/blog/91)" % (len(tickers),errmsg)
     plot_cef()
     print(msg)
     sendTelegram(msg)
