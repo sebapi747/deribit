@@ -5,6 +5,7 @@ import datetime as dt
 from pathlib import Path
 import requests
 import matplotlib.pyplot as plt
+import psutil
 from DrissionPage import ChromiumPage
 filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
@@ -110,4 +111,5 @@ if __name__ == "__main__":
     page = ChromiumPage()
     get_all_prices(page)
     plot_moscow()
+    page.quit = lambda: [proc.kill() for proc in psutil.process_iter() if proc.name().__contains__('chromium')]
     page.quit()
