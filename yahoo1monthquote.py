@@ -144,13 +144,25 @@ def getonetickerdata(ticker):
     jsondata = get_json_data(ticker)
     return inserttickerdb(jsondata)
 
+def getccytickerdata():
+    ccys = ["HUF","PEN","AED","AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
+    tickers = [c+"=X" for c in ccys] 
+    errmsg = ""
+    for i,t in enumerate(tickers):
+        try:
+            getonetickerdata(t)
+        except Exception as e:
+            errmsg += "\nERR: error for %s %s" % (t,str(e))
+    msg = "INFO:retrieved %d tickers%s" % (len(tickers),errmsg)
+    print(msg)
+
 def getalltickerdata():
     yahoo1dbarschema()
     with open("goodtickers.json","r") as f:
         tickers = json.load(f)
     with open("posticker.json","r") as f:
         postickers = json.load(f)
-    ccys = ["HUF","PEN","AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
+    ccys = ["HUF","PEN","AED","AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
     tickers = postickers + [c+"=X" for c in ccys] + tickers
     errmsg = ""
     for i,t in enumerate(tickers):
@@ -198,5 +210,6 @@ def getceftickerdata():
     sendTelegram(msg)
 
 if __name__ == "__main__":
+    getccytickerdata()
     getceftickerdata()
     getalltickerdata()
