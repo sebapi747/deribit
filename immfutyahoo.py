@@ -36,7 +36,7 @@ def sendTelegram(text):
     
 if isCMEClosed():
     print("INFO: market closed")
-    #exit()
+    exit()
 
 def isImmMonth(date):
     return date.month%3==0 
@@ -407,32 +407,29 @@ def plot_all_contango():
     for category,ticker,desc  in  sorted(dfdic.keys()):
         df = dfdic[(category,ticker,desc)]
         df['tutc'] = pd.to_datetime(df['tutc'])
-        tdiffgauge = dt.timedelta(days=4/24)
-        tdiff = df['tutc'].diff()
-        idx = df.loc[~(tdiff<tdiffgauge)].index
+        df["date"] = df['tutc'].dt.date
+        df = df.loc[~df['timestr'].isna()]
+        df = df.loc[~df["timestr"].str.contains(" at ")]
+        df = df.loc[df["timestr"].str.contains("Market Open.")]
+        df = df.drop_duplicates(subset=["date","symbol"])
+        dateset = df["date"].drop_duplicates()
         tickdic = {}
-        print("INFO: graph for ",ticker)
-        for i,ist in enumerate(idx):
-            iend = idx[i+1] if i+1<len(idx) else df.index[-1]+1
-            dfi = df[ist:iend].copy()
-            dfi["date"] = dfi["tutc"].dt.date
-            dfi = dfi.loc[~dfi['timestr'].isna()]
-            dfi = dfi.loc[~dfi["timestr"].str.contains(" at ")]
-            dfi = dfi.loc[dfi["timestr"].str.contains("Market Open.")]
-            dfi = dfi.drop_duplicates(subset=["symbol","date"])
+        print("INFO: graph for ",category,ticker,desc)
+        for i,date in enumerate(dateset):
+            dfi = df.loc[df["date"]==date]
             if len(dfi)>0:
-                c = colorFader(c1,c2,ist/len(df))
+                c = colorFader(c1,c2,i/len(dateset))
                 symbols = [s[:s.find(".")][-3:] for s in dfi["symbol"]]
                 symbolterm = [float(s[-2:])+"FGHJKMNQUVXZ".find(s[-3])/12 for s in symbols]
                 tickdic.update(dict(zip(symbols,symbolterm)))
                 dP = (dfi["quote"].iloc[-1]-dfi["quote"].iloc[0])/dfi["quote"].iloc[0]
                 dT = symbolterm[-1]-symbolterm[0]
-                plt.plot(symbolterm,dfi["quote"],color=c,alpha=ist/len(df))
+                plt.plot(symbolterm,dfi["quote"],label="%s" % dfi["tutc"].iloc[0],color=c,alpha=i/len(dateset))
                 if dT>0:
                     contangolist.append({"ticker":ticker,"t":dfi["tutc"].iloc[0],"y":dP/dT})
                 plt.xticks(ticks=symbolterm, labels=symbols,rotation=45)
         plt.title("%s %s %s y=%.2f%%" % (category,ticker,desc,dP/dT*100))
-        plt.xlabel("quotes from:" + str(df.iloc[idx[0]]["tutc"])[:16]+" to " + str(df.iloc[idx[-1]]["tutc"])[:16])
+        plt.xlabel("quotes from:" + str(df["date"].array[0])[:10]+" to " + str(df["date"].array[-1])[:10])
         plt.savefig(outdir+"contango-%s.png" % ticker,metadata=get_metadata())
         plt.close()
     pd.DataFrame(contangolist).to_csv("contango.csv",index=False)
@@ -441,5 +438,5 @@ def plot_all_contango():
  
 if __name__ == "__main__":
     #get_all_futures()
-    #insertalltickers()
+    insertalltickers()
     plot_all_contango()
