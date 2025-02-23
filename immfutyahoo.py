@@ -36,7 +36,7 @@ def sendTelegram(text):
     
 if isCMEClosed():
     print("INFO: market closed")
-    exit()
+    #exit()
 
 def isImmMonth(date):
     return date.month%3==0 
@@ -343,10 +343,19 @@ plot graphs
 def get_dfdic():
     tickerdesc = pd.read_csv("tickers.csv")
     dfdic = {}
-    for f in os.listdir(immcsvdir):
-        r = tickerdesc.loc[tickerdesc["ticker"]==f[:-4]].iloc[0]
-        print(immcsvdir+f)
-        dfdic[(r["category"],r["ticker"],r["desc"])] = pd.read_csv(immcsvdir+f)
+    dbdir = dirname+'/immfut/'
+    for f in os.listdir(dbdir):
+        ticker = f.replace(".db","")
+        r = tickerdesc.loc[tickerdesc["ticker"]==ticker].iloc[0]
+        print("INFO: fetching data from csv and db for ",ticker)
+        df1 = pd.read_csv(dbdir+"../immfutcsv/"+ticker+".csv")
+        with sqlite3.connect(dbdir+f) as con:
+            df2 = pd.read_sql("select symbol,utcdate as tutc, close as quote from immfut where symbol!=?", con=con, params=[ticker])
+            df2["ticker"] = ticker
+            df2["opened"] = True
+            df2["timestr"] = "Market Open."
+        df = pd.concat([df1,df2])
+        dfdic[(r["category"],r["ticker"],r["desc"])] = df
     return dfdic
 
 def colorFader(c1,c2,mix=0): #fade (linear interpolate) from color c1 (at mix=0) to c2 (mix=1)
@@ -406,9 +415,11 @@ def plot_all_contango():
         for i,ist in enumerate(idx):
             iend = idx[i+1] if i+1<len(idx) else df.index[-1]+1
             dfi = df[ist:iend].copy()
-            dfi = dfi.loc[~df['timestr'].isna()]
+            dfi["date"] = dfi["tutc"].dt.date
+            dfi = dfi.loc[~dfi['timestr'].isna()]
             dfi = dfi.loc[~dfi["timestr"].str.contains(" at ")]
             dfi = dfi.loc[dfi["timestr"].str.contains("Market Open.")]
+            dfi = dfi.drop_duplicates(subset=["symbol","date"])
             if len(dfi)>0:
                 c = colorFader(c1,c2,ist/len(df))
                 symbols = [s[:s.find(".")][-3:] for s in dfi["symbol"]]
@@ -416,7 +427,7 @@ def plot_all_contango():
                 tickdic.update(dict(zip(symbols,symbolterm)))
                 dP = (dfi["quote"].iloc[-1]-dfi["quote"].iloc[0])/dfi["quote"].iloc[0]
                 dT = symbolterm[-1]-symbolterm[0]
-                plt.plot(symbolterm,dfi["quote"],label="%s" % dfi["tutc"].iloc[0],color=c,alpha=ist/len(df))
+                plt.plot(symbolterm,dfi["quote"],color=c,alpha=ist/len(df))
                 if dT>0:
                     contangolist.append({"ticker":ticker,"t":dfi["tutc"].iloc[0],"y":dP/dT})
                 plt.xticks(ticks=symbolterm, labels=symbols,rotation=45)
@@ -430,5 +441,5 @@ def plot_all_contango():
  
 if __name__ == "__main__":
     #get_all_futures()
-    insertalltickers()
-    #plot_all_contango()
+    #insertalltickers()
+    plot_all_contango()
