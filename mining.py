@@ -79,7 +79,7 @@ def checkmining(btcaddress):
     usdelecperday = 0.104*eleckWhprice*24
     totalhashperblock = float(answer['data']['hashrate_24h'])*60*10
     myhashperblock    = myhashrate*60*10
-    oddsperblock      = myhashperblock/totalhashperblock
+    oddsperblock      = myhashperblock/totalhashperblock+1e-200
     soloblockyear     = 1/(365*24*6*oddsperblock)
     #poolbalance = getmybtcpayout(payoutsnap)
     balances = "btc=%.0f hash=%.8fBTC/day" % (answer['data']['market_price_usd'],btcperday)
