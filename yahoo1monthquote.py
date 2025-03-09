@@ -60,7 +60,7 @@ def get_json_data(ticker):
     if os.path.exists(filename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
         print("INFO: %s found                        " % filename, end="\r")
-        if filehours<12:
+        if filehours<24*6:
             with open(filename,"r") as f:
                 return json.load(f)
     if os.path.exists(errfilename):

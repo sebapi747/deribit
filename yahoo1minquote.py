@@ -135,11 +135,17 @@ json.dumps(tickers)
 json.dumps(list(set(gooddf['ccy'])))
 '''
 def insertalltickers():
+    with open("posticker.json","r") as f:
+        postickers = json.load(f)
     with open("goodtickers.json","r") as f:
         tickers = json.load(f)
     ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "USD", "VND", "ZAR"]
     errors = ""
     out = "\n|ticker|before|after|\n|---|---:|---:|\n"
+    for ticker in postickers:
+        ticker,nbbefore,nbafter,err = inserttickersymbols(ticker)
+        out += "|%s|%d|%d|\n" % (ticker,nbbefore,nbafter)
+        errors += err
     for ticker in tickers:
         ticker,nbbefore,nbafter,err = inserttickersymbols(ticker)
         out += "|%s|%d|%d|\n" % (ticker,nbbefore,nbafter)
