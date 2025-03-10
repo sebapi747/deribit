@@ -35,19 +35,33 @@ def get_json_data(ticker):
     if os.path.exists(filename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
         print("INFO: %s found" % filename, end="\r")
-        if filehours<0.5:
+        if filehours<4:
             with open(filename,"r") as f:
                 return json.load(f)
     if os.path.exists(errfilename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(errfilename))/3600
         print("INFO: %s found" % filename)
-        if filehours<2:
-            raise Exception("ERR: %s occurred less than 2 hours ago" % errfilename)
+        if filehours<4:
+            raise Exception("ERR: %s occurred less than 4 hours ago" % errfilename)
     sleeptime = random.uniform(1,2)
     print("INFO: %s in %.2fsec" % (url,sleeptime))
     time.sleep(sleeptime)
     os.system("rm -f %s" % filename)
-    os.system("curl --silent %s > %s" % (url,filename))
+    cmd = f"""curl --silent '{url}' \
+    -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
+    -H 'accept-language: en-US,en;q=0.9' \
+    -H 'cache-control: max-age=0' \
+    -H 'priority: u=0, i' \
+    -H 'sec-ch-ua: "Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"' \
+    -H 'sec-ch-ua-mobile: ?0' \
+    -H 'sec-ch-ua-platform: "Linux"' \
+    -H 'sec-fetch-dest: document' \
+    -H 'sec-fetch-mode: navigate' \
+    -H 'sec-fetch-site: none' \
+    -H 'sec-fetch-user: ?1' \
+    -H 'upgrade-insecure-requests: 1' \
+    -H 'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36' > '{filename}' """
+    os.system(cmd)
     try:
         if not os.path.exists(filename):
             raise Exception("ERR: could not fetch %s" % url)
@@ -138,7 +152,7 @@ def insertalltickers():
     with open("posticker.json","r") as f:
         postickers = json.load(f)
     with open("goodtickers.json","r") as f:
-        tickers = json.load(f)
+        tickers = [t for t in json.load(f) if type(t)==str and t[-3:]!=".NS"]
     ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "USD", "VND", "ZAR"]
     errors = ""
     out = "\n|ticker|before|after|\n|---|---:|---:|\n"
