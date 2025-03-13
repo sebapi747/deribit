@@ -14,10 +14,18 @@ def get_metadata():
     return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
 
 def sendTelegram(text):
-    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdown'}  
-    resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
-    resp.raise_for_status()
-         
+    maxlen = 4000
+    if len(text)<maxlen:
+        params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdown'}  
+        resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
+        resp.raise_for_status()
+    else:
+        idx = text.rfind("\n",0,maxlen)
+        if idx==-1:
+            idx = maxlen-1
+        sendTelegram(text[:idx])
+        sendTelegram(text[idx:])
+            
 def insert_df_to_table(df, tablename, cols, con):
     if len(df)==0:
         return
