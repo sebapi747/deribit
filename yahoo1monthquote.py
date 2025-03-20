@@ -75,7 +75,7 @@ def get_json_data(ticker):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(errfilename))/3600
         print("INFO: %s found" % filename)
         if filehours<24*7:
-            raise Exception("ERR: %s occurred less than %.2f hours ago" % (errfilename,filehours))
+            raise Exception("%s(%.0fh)" % (errfilename,filehours))
     sleeptime = random.uniform(1,2)
     print("INFO: %s in %.2fsec" % (url,sleeptime))
     time.sleep(sleeptime)
@@ -85,11 +85,11 @@ def get_json_data(ticker):
     os.system(cmd)
     try:
         if not os.path.exists(filename):
-            raise Exception("ERR: could not fetch %s" % url)
+            raise Exception("ERR:nojsonfile %s" % url)
         with open(filename,"r") as f:
             jsondata = json.load(f)
         if jsondata['chart'].get('error') is not None:
-            raise Exception("ERR: %s %s" % (ticker, jsondata['chart']['error']['description']))
+            raise Exception("ERR:jsonerr:%s %s" % (ticker, jsondata['chart']['error']['description']))
     except Exception as e:
         with open(errfilename, "w") as f:
             f.write(str(e))
@@ -153,34 +153,28 @@ def inserttickerdb(jsondata):
 def getonetickerdata(ticker):
     jsondata = get_json_data(ticker)
     return inserttickerdb(jsondata)
-
-def getccytickerdata():
-    ccys = ["HUF","PEN","AED","AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
-    tickers = [c+"=X" for c in ccys] 
-    errmsg = ""
-    for i,t in enumerate(tickers):
-        try:
-            getonetickerdata(t)
-        except Exception as e:
-            errmsg += "\nERR: error for %s %s" % (t,str(e))
-    msg = "INFO:retrieved %d tickers%s" % (len(tickers),errmsg)
-    print(msg)
-
+    
 def getalltickerdata():
     yahoo1dbarschema()
     with open("goodtickers.json","r") as f:
         tickers = [t for t in json.load(f) if type(t)==str and t[-3:]!=".NS"]
     with open("posticker.json","r") as f:
         postickers = json.load(f)
-    ccys = ["HUF","PEN","AED","AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "VND", "ZAR"]
+    ccys = ["HUF","PEN","AED","AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", 
+        "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "INR", "JPY", "KRW", 
+        "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", 
+        "TRY", "TWD", "VND", "ZAR"]
     tickers = postickers +  tickers + [c+"=X" for c in ccys]
-    errmsg = ""
+    errmsg,found = [],0
     for i,t in enumerate(tickers):
         try:
             getonetickerdata(t)
+            found += 1
         except Exception as e:
-            errmsg += "\nERR: error for %s %s" % (t,str(e))
-    msg = "INFO:retrieved %d tickers%s" % (len(tickers),errmsg)
+            errmsg.append(str(e))
+    msg = "INFO:**retrieved %d/%d all tickers** " % (found,len(tickers))
+    if len(errmsg)>0:
+        msg += "\nERR:"+",".join(errmsg)
     print(msg)
     sendTelegram(msg)
 
@@ -208,18 +202,21 @@ def getceftickerdata():
     yahoo1dbarschema()
     cefdf = pd.read_csv("cef.csv")
     tickers = ["SPY","GLD","TLT","EOI","PEO","BCX"] + list(cefdf["symbol"])
-    errmsg = ""
+    errmsg,found = [],0
     for i,t in enumerate(tickers):
         try:
             getonetickerdata(t)
+            found += 1
         except Exception as e:
-            errmsg += "\nERR: error for %s %s" % (t,str(e))
-    msg = "INFO:getceftickerdata retrieved %d tickers%s see [cef blog](https://www.markowitzoptimizer.pro/blog/91)" % (len(tickers),errmsg)
+            errmsg.append(str(e))
+    msg = "INFO:getceftickerdata retrieved %d tickers%s see [cef blog](https://www.markowitzoptimizer.pro/blog/91)\n" % (found,len(tickers))
+    msg += "**retrieved %d/%d cef** tickers" % (found,len(tickers))
+    if len(errmsg)>0:
+        msg += "\nERR:"+",".join(errmsg)
     plot_cef()
     print(msg)
     sendTelegram(msg)
 
 if __name__ == "__main__":
-    #getccytickerdata()
     getceftickerdata()
     getalltickerdata()
