@@ -1,5 +1,5 @@
 #import csv
-import os,json,time,sqlite3
+import os,json,time,sqlite3,traceback
 import datetime as dt
 import pandas as pd
 import random
@@ -337,7 +337,7 @@ def insertalltickers():
         ticker,nbbefore,nbafter,err = inserttickersymbols(ticker, symbols)
         out += "|%s|%d|%d|\n" % (ticker,nbbefore,nbafter)
         errors += err
-    sendTelegram(out+errors)
+    return out+errors
 
 ''' -------------------------------------------------------
 plot graphs
@@ -440,5 +440,9 @@ def plot_all_contango():
  
 if __name__ == "__main__":
     #get_all_futures()
-    insertalltickers()
-    plot_all_contango()
+    try:
+        msg = insertalltickers()
+        plot_all_contango()
+        sendTelegran("updated [future contango](https://www.markowitzoptimizer.pro/blog/73)\n"+msg)
+    except Exception as e:
+        sendTelegran("trying to update [future contango](https://www.markowitzoptimizer.pro/blog/73), error in "+str(e)+traceback.format_exc())
