@@ -28,7 +28,7 @@ def sendTelegram(text):
     
 def get_jsonfilename(ticker):
     return "json/%s.json" % (ticker)
-def get_json_data(ticker):
+def get_json_data(ticker,sleeptime):
     url = "https://query1.finance.yahoo.com/v8/finance/chart/" + ticker
     filename = get_jsonfilename(ticker)
     errfilename = filename.replace(".json",".err")
@@ -41,9 +41,9 @@ def get_json_data(ticker):
     if os.path.exists(errfilename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(errfilename))/3600
         print("INFO: %s found" % filename)
-        if filehours<4:
-            raise Exception("ERR: %s occurred less than 4 hours ago" % errfilename)
-    sleeptime = random.uniform(1,2)
+        if filehours<24:
+            raise Exception("ERR: %s occurred less than 24 hours ago" % errfilename)
+    sleeptime = random.uniform(sleeptime,min(sleeptime+1,sleeptime*2))
     print("INFO: %s in %.2fsec" % (url,sleeptime))
     time.sleep(sleeptime)
     os.system("rm -f %s" % filename)
@@ -65,6 +65,15 @@ def get_json_data(ticker):
 
 def convertdate(d):
     return dt.datetime.fromtimestamp(d).astimezone(localtz).astimezone(utctz)
+def getprice(jsondata):
+    meta = jsondata["chart"]["result"][0]["meta"]
+    dic = {}
+    dic['pricedate'] = dt.datetime.utcfromtimestamp(meta['regularMarketTime'])
+    for c in ['symbol','longName','fullExchangeName','currency','regularMarketPrice','regularMarketDayHigh','regularMarketDayLow',
+             'regularMarketVolume','fiftyTwoWeekHigh','fiftyTwoWeekLow']:
+        dic[c] = meta[c]
+    return dic
+    
 def processjsontopandas(jsondata):
     jsonmeta = jsondata['chart']['result'][0]['meta']
     #echgtz  = pytz.timezone(jsonmeta['exchangeTimezoneName'])
@@ -106,20 +115,29 @@ def insert_df_to_table(df, tablename, cols,con):
     con.execute(sql)
     con.execute('drop table '+tablename+'_tmp')
     
-def getandinsertfutpandas(ticker,dbfilename):
-    df = processjsontopandas(get_json_data(ticker))
+def insert_dic_to_table(dic, tablename, con):
+    sql = "insert or replace into %s ([%s]) values (%s)" % (tablename, '],['.join(dic.keys()), ','.join("?"*len(dic)))
+    con.execute(sql, list(dic.values()))
+    con.commit()
+    
+def getandinsertfutpandas(ticker,dbfilename,sleeptime):
+    jsondata =  get_json_data(ticker,sleeptime)
+    dic = getprice(jsondata)
+    with sqlite3.connect("sql/yahoo.db") as con:
+        insert_dic_to_table(dic,tablename="yahoo_latest_price",con=con)
+    df = processjsontopandas(jsondata)
     print("INFO: %s inserting %d" % (ticker,len(df)),end="\r")
     with sqlite3.connect(dbfilename) as con:
         insert_df_to_table(df, "quoteminutebar", df.columns,con)
 
-def inserttickersymbols(ticker):
+def inserttickersymbols(ticker,sleeptime=1):
     err = ""
     dbfilename = "%s/yahoo1minquote/%s.db" % (dirname,ticker)
     schema(dbfilename)
     with sqlite3.connect(dbfilename) as con:
         nbbefore = len(pd.read_sql("select 1 from quoteminutebar", con=con))
     try:
-        getandinsertfutpandas(ticker,dbfilename)
+        getandinsertfutpandas(ticker,dbfilename,sleeptime)
     except Exception as e:
         err += "\n%s" % str(e)
     with sqlite3.connect(dbfilename) as con:
@@ -140,7 +158,7 @@ def insertalltickers():
     with open("posticker.json","r") as f:
         postickers = json.load(f)
     with open("goodtickers.json","r") as f:
-        tickers = [t for t in json.load(f) if type(t)==str and t[-3:]!=".NS"]
+        tickers = ["SPY","GLD","TLT"]+[t for t in json.load(f) if type(t)==str and t[-3:]!=".NS" and t not in postickers]
     ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "USD", "VND", "ZAR"]
     errors = ""
     out = "\n|ticker|before|after|\n|---|---:|---:|\n"
