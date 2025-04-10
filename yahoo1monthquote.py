@@ -154,6 +154,12 @@ def getonetickerdata(ticker):
     jsondata = get_json_data(ticker)
     return inserttickerdb(jsondata)
     
+def removerecenttickers(tickers):
+    dtrecent = dt.datetime.utcnow()-dt.timedelta(days=1)
+    with sqlite3.connect("sql/yahoo.db") as db5:
+        tickerrecent = pd.read_sql("select symbol from yahoo_latest_price where pricedate>?",con=db5,params=[dtrecent])["symbol"].array
+    return [t for t in tickers if t not in tickerrecent]
+
 def getalltickerdata():
     yahoo1dbarschema()
     with open("goodtickers.json","r") as f:
@@ -165,6 +171,9 @@ def getalltickerdata():
         "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", 
         "TRY", "TWD", "VND", "ZAR"]
     tickers = postickers +  tickers + [c+"=X" for c in ccys]
+    oldlen = len(tickers)
+    tickers = removerecenttickers(tickers)
+    skip = oldlen-len(tickers)
     errmsg,found = [],0
     for i,t in enumerate(tickers):
         try:
@@ -172,7 +181,7 @@ def getalltickerdata():
             found += 1
         except Exception as e:
             errmsg.append(str(e))
-    msg = "INFO:**retrieved %d/%d all tickers** " % (found,len(tickers))
+    msg = "INFO:**retrieve %d, skip %d of %d tickers** " % (found,skip,oldlen)
     if len(errmsg)>0:
         msg += "\nERR:"+",".join(errmsg)
     print(msg)
@@ -202,6 +211,9 @@ def getceftickerdata():
     yahoo1dbarschema()
     cefdf = pd.read_csv("cef.csv")
     tickers = ["SPY","GLD","TLT","EOI","PEO","BCX"] + list(cefdf["symbol"])
+    oldlen = len(tickers)
+    tickers = removerecenttickers(tickers)
+    skip = oldlen-len(tickers)
     errmsg,found = [],0
     for i,t in enumerate(tickers):
         try:
@@ -210,9 +222,9 @@ def getceftickerdata():
         except Exception as e:
             errmsg.append(str(e))
     msg = "INFO:getceftickerdata retrieved %d tickers%s see [cef blog](https://www.markowitzoptimizer.pro/blog/91)\n" % (found,len(tickers))
-    msg += "**retrieved %d/%d cef** tickers" % (found,len(tickers))
+    msg += "**retrieve %d, skip %d of %d cef** tickers" % (found,skip,oldlen)
     if len(errmsg)>0:
-        msg += "\nERR:"+",".join(errmsg)
+        msg += f"\n{len(errmsg)} errors:\n"+", ".join(errmsg)
     plot_cef()
     print(msg)
     sendTelegram(msg)
