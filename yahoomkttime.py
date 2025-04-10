@@ -12,7 +12,6 @@ ticker_suffix_info = {
     # UTC Open: 00:00 (Asia/Tokyo, Asia/Seoul, etc.)
     'KS': ('15:30', '09:00', 'Asia/Seoul', [5, 6]),            # South Korea (Korea)
     'T':  ('15:00', '09:00', 'Asia/Tokyo', [5, 6]),            # Japan (Tokyo)
-
     # UTC Open: 01:00
     'SI': ('17:00', '09:00', 'Asia/Singapore', [5, 6]),        # Singapore (SGX)
     'KL': ('17:00', '09:00', 'Asia/Kuala_Lumpur', [5, 6]),     # Malaysia (Kuala Lumpur)
@@ -28,21 +27,17 @@ ticker_suffix_info = {
     'BK': ('17:00', '10:00', 'Asia/Bangkok', [5, 6]),          # Thailand (Bangkok)
     # UTC Open: 15:30
     'NS': ('15:30', '09:15', 'Asia/Kolkata', [5, 6]),          # India (National Stock Exchange)
-
     # UTC Open: 06:00
     'KW': ('14:00', '09:00', 'Asia/Kuwait', [4, 5]),           # Kuwait (Kuwait Stock Exchange)
     'QA': ('13:30', '09:00', 'Asia/Qatar', [4, 5]),            # Qatar (Qatar Stock Exchange)
     'AE': ('14:00', '10:00', 'Asia/Dubai', [4, 5]),            # UAE (Abu Dhabi Securities Exchange)
-
     # UTC Open: 07:00
     'HE': ('17:00', '09:00', 'Europe/Helsinki', [5, 6]),       # Finland (Helsinki)
     'VS': ('16:00', '09:00', 'Europe/Vilnius', [5, 6]),        # Lithuania (Vilnius)
     'JO': ('16:00', '09:00', 'Africa/Johannesburg', [5, 6]),   # South Africa (Johannesburg)
     'SR': ('15:00', '10:00', 'Asia/Riyadh', [4, 5]),           # Saudi Arabia (Tadawul)
-
     # UTC Open: 07:45
     'RO': ('16:45', '09:45', 'Europe/Bucharest', [5, 6]),      # Romania (Bucharest)
-
     # UTC Open: 08:00
     'L': ('16:30', '08:00', 'Europe/London', [5, 6]),          # UK (London)
     'DE': ('17:30', '09:00', 'Europe/Berlin', [5, 6]),         # Germany (Deutsche Börse)
@@ -67,7 +62,6 @@ ticker_suffix_info = {
     'IC': ('15:30', '09:00', 'Atlantic/Reykjavik', [5, 6]),    # Iceland (Iceland Stock Exchange)
     # UTC Open: 12:00
     'SN': ('16:00', '09:00', 'America/Santiago', [5, 6]),      # Chile (Santiago)
-
     # UTC Open: 13:00
     'SA': ('17:00', '10:00', 'America/Sao_Paulo', [5, 6]),     # Brazil (B3 São Paulo)
     # UTC Open: 13:30
@@ -122,52 +116,52 @@ def get_market_status(suffix):
 
 def get_suffixes(strings):
     suffixes = {}
-    for s in strings:
+    for s in set(strings):
         s = str(s)
-        if '.' in s:
-            suffix = s.rsplit('.', 1)[-1]
-        else:
-            suffix = ""
+        suffix = s.rsplit('.', 1)[-1] if '.' in s else ""
         suffixes[suffix] = suffixes.get(suffix,[])+[s]
+    print("INFO: found %d unique suffixes in total" % len(suffixes.keys()))
     return suffixes
 
-def getfilesuffixes(json_filename):
-    with open(json_filename, 'r') as f:
-        data = json.load(f)
-    suffixes = get_suffixes(data)
+def getfilesuffixes(json_filenames):
+    data = []
+    for json_filename in json_filenames:
+        with open(json_filename, 'r') as f:
+            tickers = json.load(f)
+            print("INFO: found %d tickers in %s" % (len(tickers),json_filename))
+            data += [t for t in tickers if t not in data]
+    print("INFO: found %d unique tickers in total" % len(data))
+    suffixes = get_suffixes(set(data))
     return suffixes
 
-def check_markets(json_filename):
+def check_markets(json_filenames):
     suffixes = ticker_suffix_info.keys()
     market_status = []
     for suffix in suffixes:
         market_status.append(get_market_status(suffix))
     df = pd.DataFrame(market_status).set_index("suffix")
-    tickersbysuffix = getfilesuffixes(json_filename)
+    tickersbysuffix = getfilesuffixes(json_filenames)
     return df.join(pd.DataFrame({"count":[len(v) for v in tickersbysuffix.values()]},index=tickersbysuffix.keys()),how="outer").sort_values(["isopen","dtnext"],ascending=[False,True])
 
-def check_recent_markets():
+def check_open_markets():
     dtnow = datetime.utcnow().replace(tzinfo=pytz.UTC).astimezone(pytz.timezone("Asia/Hong_Kong"))
     suffixes = ticker_suffix_info.keys()
     market_status = []
     for suffix in suffixes:
         market_status.append(get_market_status(suffix))
     df = pd.DataFrame(market_status).set_index("suffix")
-    return df.loc[df["isopen"] & (df["dtprev"]<dtnow-timedelta(minutes=20)) & (df["dtprev"]>dtnow-timedelta(minutes=70))].index
+    return df.loc[df["isopen"]].index # & (df["dtprev"]<dtnow-timedelta(minutes=20)) & (df["dtprev"]>dtnow-timedelta(minutes=70))].index
 
-
+def check_open_tickers(json_filenames):
+    tickersbysuffix = getfilesuffixes(json_filenames)
+    suffix = check_open_markets()
+    tickers = []
+    for s in suffix:
+        print(s)
+        tickers += tickersbysuffix.get(s,[])
+    return tickers
 # Example usage:
-"""print(market_status)
-print(ismarketopenforticker("AAPL"))      # NYSE, US
-print(ismarketopenforticker("RY.TO"))     # Toronto, Canada
-print(ismarketopenforticker("BHP.AX"))    # Australia
-print(ismarketopenforticker("700.HK"))    # Australia"""
-json_filename = sys.argv[1]
-market_status = check_markets(json_filename)
-print(market_status)
-filesbysuffix = getfilesuffixes(json_filename)
-suffix = check_recent_markets()
-files = []
-for s in suffix:
-	files.append(filesbysuffix[s])
-print(files)
+if __name__ == "__main__":
+    json_filenames = sys.argv[1:]
+    print(check_markets(json_filenames))
+    print(check_open_tickers(json_filenames))
