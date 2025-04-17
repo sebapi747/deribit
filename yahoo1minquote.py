@@ -34,13 +34,14 @@ def get_json_data(ticker,sleeptime):
     errfilename = filename.replace(".json",".err")
     if os.path.exists(filename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(filename))/3600
-        print("INFO: %s found" % filename, end="\r")
+        #print("INFO: %s found" % filename, end="\r")
         if filehours<4:
-            with open(filename,"r") as f:
-                return json.load(f)
+            raise Exception("WARN: %s produced less than 4 hours ago" % filename)
+            #with open(filename,"r") as f:
+            #    return json.load(f)
     if os.path.exists(errfilename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(errfilename))/3600
-        print("INFO: %s found" % filename)
+        print("INFO: %s found" % errfilename)
         if filehours<24:
             raise Exception("ERR: %s occurred less than 24 hours ago" % errfilename)
     sleeptime = random.uniform(sleeptime,min(sleeptime+1,sleeptime*2))
@@ -139,11 +140,13 @@ def inserttickersymbols(ticker,sleeptime=1):
     try:
         getandinsertfutpandas(ticker,dbfilename,sleeptime)
     except Exception as e:
-        err += "\n%s" % str(e)
+        if not str(e).startswith("WARN"):
+            err += "\n%s" % str(e)
     with sqlite3.connect(dbfilename) as con:
         nbafter = len(pd.read_sql("select 1 from quoteminutebar", con=con))
-    print(err)
-    print("INFO: %s: had %d quotes now %d" % (ticker,nbbefore,nbafter))
+    if not err.startswith("WARN"):
+        print(err)
+        print("INFO: %s: had %d quotes now %d" % (ticker,nbbefore,nbafter))
     return ticker,nbbefore,nbafter,err
 
 '''
