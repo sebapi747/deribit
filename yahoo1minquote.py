@@ -42,7 +42,7 @@ def get_json_data(ticker,sleeptime):
     if os.path.exists(errfilename):
         filehours = (dt.datetime.now().timestamp()-os.path.getmtime(errfilename))/3600
         print("INFO: %s found" % errfilename)
-        if filehours<24:
+        if filehours<4:
             raise Exception("ERR: %s occurred less than 24 hours ago" % errfilename)
     sleeptime = random.uniform(sleeptime,min(sleeptime+1,sleeptime*2))
     print("INFO: %s in %.2fsec" % (url,sleeptime))
@@ -158,8 +158,10 @@ json.dumps(tickers)
 json.dumps(list(set(gooddf['ccy'])))
 '''
 def insertalltickers():
-    with open("posticker.json","r") as f:
+    with open("missingpos.json","r") as f:
         postickers = json.load(f)
+    with open("posticker.json","r") as f:
+        postickers += json.load(f)
     with open("goodtickers.json","r") as f:
         tickers = ["SPY","GLD","TLT"]+[t for t in json.load(f) if type(t)==str and t[-3:]!=".NS" and t not in postickers]
     ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "USD", "VND", "ZAR"]
