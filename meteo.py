@@ -11,6 +11,7 @@ filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir == "" else filedir)
 
 import config
+csvdir = "meteocsv/"
 
 # Define locations with coordinates, timezones, and CSV paths
 LOCATIONS = [
@@ -271,7 +272,7 @@ def main():
             lat = location["latitude"]
             lon = location["longitude"]
             timezone = location["timezone"]
-            csv_file = location["csv_file"]
+            csv_file = csvdir+location["csv_file"]
 
             print(f"\nProcessing {name}...")
             print(f"Using coordinates: Latitude={lat}, Longitude={lon}")
