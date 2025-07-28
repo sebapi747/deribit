@@ -1,0 +1,74 @@
+import glob
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter
+
+def plot_city_weather(csv_file):
+    # Extract city name from file name
+    city_name = os.path.basename(csv_file).replace('_weather.csv', '').replace('_', ' ').title()
+    
+    # Read CSV data
+    df = pd.read_csv(csv_file)
+    df['Date'] = pd.to_datetime(df['Date'])
+    
+    # Create figure with 3 subplots in a row
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 5))
+    
+    # Plot 1: Temperature and Humidity
+    ax1.plot(df['Date'], df['Max_Temperature_C'], 'r-', label='Max Temp (°C)')
+    ax1.plot(df['Date'], df['Min_Temperature_C'], 'r--', label='Min Temp (°C)')
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Temperature (°C)', color='r')
+    ax1.tick_params(axis='y', labelcolor='r')
+    
+    ax1b = ax1.twinx()
+    ax1b.plot(df['Date'], df['Mean_Humidity_Pct'], 'b-', label='Humidity (%)')
+    ax1b.set_ylabel('Humidity (%)', color='b')
+    ax1b.tick_params(axis='y', labelcolor='b')
+    
+    ax1.legend(loc='upper left')
+    ax1b.legend(loc='upper right')
+    
+    # Plot 2: Precipitation and Pressure
+    ax2.bar(df['Date'], df['Precipitation_mm'], color='b', label='Precipitation (mm)')
+    ax2.set_xlabel('Date')
+    ax2.set_ylabel('Precipitation (mm)', color='b')
+    ax2.tick_params(axis='y', labelcolor='b')
+    
+    ax2b = ax2.twinx()
+    ax2b.plot(df['Date'], df['Mean_Pressure_hPa'], 'gray', label='Pressure (hPa)')
+    ax2b.set_ylabel('Pressure (hPa)', color='gray')
+    ax2b.tick_params(axis='y', labelcolor='gray')
+    
+    ax2.legend(loc='upper left')
+    ax2b.legend(loc='upper right')
+    
+    # Plot 3: PM10 and PM2.5
+    ax3.plot(df['Date'], df['Mean_PM10_ugm3'], 'gray', label='PM10 (µg/m³)')
+    ax3.plot(df['Date'], df['Mean_PM25_ugm3'], 'k', label='PM2.5 (µg/m³)')
+    ax3.set_xlabel('Date')
+    ax3.set_ylabel('Particle Concentration (µg/m³)')
+    ax3.legend(loc='upper left')
+    
+    # Format dates on x-axis for all plots
+    date_formatter = DateFormatter('%Y-%m-%d')
+    for ax in [ax1, ax2, ax3]:
+        ax.xaxis.set_major_formatter(date_formatter)
+        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+    
+    # Add super title and adjust layout
+    plt.suptitle(f'{city_name} Weather Data', fontsize=16)
+    plt.tight_layout()
+    
+    # Create output directory if it doesn't exist
+    os.makedirs('meteopng', exist_ok=True)
+    
+    # Save plot
+    output_file = f'meteopng/{city_name.replace(" ", "_").lower()}.png'
+    plt.savefig(output_file, bbox_inches='tight', dpi=300)
+    plt.close()
+
+# Main script
+for csv_file in glob.glob('meteocsv/*.csv'):
+    plot_city_weather(csv_file)
