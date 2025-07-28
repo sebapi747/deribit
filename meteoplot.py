@@ -1,15 +1,30 @@
 import glob
 import os
 import pandas as pd
+import requests
+import datetime as dt
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter
+filedir = os.path.dirname(__file__)
+os.chdir("./" if filedir=="" else filedir)
+import config
+remotedir = config.remotedir
+outdir = config.dirname + "/meteopng"
 
+def get_metadata():
+    return {'Creator':os.uname()[1] +":"+__file__+":"+str(dt.datetime.utcnow())}
+def sendTelegram(text):
+    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1] +":"+__file__+":"+text, 'parse_mode': 'markdown'}  
+    resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
+    resp.raise_for_status()
+    
 def plot_city_weather(csv_file):
     # Extract city name from file name
     city_name = os.path.basename(csv_file).replace('_weather.csv', '').replace('_', ' ').title()
     
     # Read CSV data
     df = pd.read_csv(csv_file)
+    lastdate = df['Date'].array[-1]
     df['Date'] = pd.to_datetime(df['Date'])
     
     # Create figure with 3 subplots in a row
@@ -32,7 +47,7 @@ def plot_city_weather(csv_file):
     
     # Plot 2: Precipitation and Pressure
     ax2.bar(df['Date'], df['Precipitation_mm'], color='#87CEEB', label='Precipitation (mm)')
-    ax2.set_xlabel('Date')
+    ax2.set_xlabel(f'Date (last: {lastdate})')
     ax2.set_ylabel('Precipitation (mm)', color='#87CEEB')
     ax2.tick_params(axis='y', labelcolor='#87CEEB')
     
@@ -66,10 +81,16 @@ def plot_city_weather(csv_file):
     
     # Save plot
     output_file = f'meteopng/{city_name.replace(" ", "_").lower()}.png'
-    plt.savefig(output_file, bbox_inches='tight', dpi=300)
+    plt.savefig(output_file, bbox_inches='tight', metadata=get_metadata())
     plt.close()
 
 # Main script
-for csv_file in glob.glob('meteocsv/*.csv'):
-    print("processing ",csv_file)
-    plot_city_weather(csv_file)
+if __name__ == "__main__":
+    for csv_file in glob.glob('meteocsv/*.csv'):
+        print("processing ",csv_file)
+        plot_city_weather(csv_file)
+    cmd = 'rsync -avzhe ssh -L %s %s' % (outdir, remotedir)
+    print(cmd)
+    os.system(cmd)
+    sendTelegram("updated [weather](https://www.markowitzoptimizer.pro/static/pics/deribit/meteopng/citywheather.html)")
+    
