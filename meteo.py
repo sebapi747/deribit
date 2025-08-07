@@ -299,7 +299,7 @@ def main():
             tz = pytz.timezone("Europe/Paris")
             yesterday = (datetime.now(tz) - timedelta(days=1)).strftime("%Y-%m-%d")
             summary_text = f"Weather & Air Quality Summary for {yesterday}:\n" + "\n".join(summary_lines)
-            sendTelegram(summary_text)
+            #sendTelegram(summary_text)
         else:
             sendTelegram("No data available for yesterday.")
 
