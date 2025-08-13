@@ -2,6 +2,12 @@ import requests,json,os,csv,time
 import datetime as dt
 from lxml.html.soupparser import fromstring
 from pathlib import Path
+import urllib3
+# Disable all warnings (use cautiously)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Now all requests will suppress warnings
+response = requests.get('https://public-pool.io', verify=False)
 filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
@@ -114,8 +120,9 @@ def checkmining(btcaddress):
 
 
 if __name__ == "__main__":
+    hostsip = discover_bitaxe_hosts_with_ips()
     try:
         checkmining(btcaddress)
     except (Exception,ZeroDivisionError) as e:
-        sendTelegram(f"bitaxe hosts: {discover_bitaxe_hosts_with_ips().join(',')}\n{str(e)}")
+        sendTelegram(f"bitaxe hosts: {str(hostsip)}\n{str(e)}")
         raise
