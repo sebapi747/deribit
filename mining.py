@@ -2,16 +2,12 @@ import requests,json,os,csv,time
 import datetime as dt
 from lxml.html.soupparser import fromstring
 from pathlib import Path
-import urllib3
-# Disable all warnings (use cautiously)
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# Now all requests will suppress warnings
-response = requests.get('https://public-pool.io', verify=False)
 filedir = os.path.dirname(__file__)
 os.chdir("./" if filedir=="" else filedir)
 import config
-
+import urllib3
+# Disable all warnings (use cautiously)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 #btcaddress = '38zPevxjY7bNxtRMnpbs8rF5tMnpTCWtNt'
 #btcaddress = "1MeNUCC6buJUaj5L2PAiZtSso44xdVUn7C"
 btcaddress = "bc1qgcvc74jydsuz89675d9se5v6klmwl564qdmnzu"
@@ -86,6 +82,7 @@ def poolio(btcaddress):
     return hashrate,0
 
 def checkmining(btcaddress):
+    hostsip = discover_bitaxe_hosts_with_ips()
     url = "https://api.blockchair.com/bitcoin/stats"
     x = requests.get(url)
     if x.status_code!=200:
@@ -105,7 +102,7 @@ def checkmining(btcaddress):
     oddsperblock      = myhashperblock/totalhashperblock+1e-200
     soloblockyear     = 1/(365*24*6*oddsperblock)
     #poolbalance = getmybtcpayout(payoutsnap)
-    balances = "btc=%.0f hash=%.8fBTC/day" % (answer['data']['market_price_usd'],btcperday)
+    balances = "bitaxe hosts: %s\nbtc=%.0f hash=%.8fBTC/day" % (str(hostsip),answer['data']['market_price_usd'],btcperday)
     rates = "reward/yr=%.2fUSD (%.8fBTC) elec/yr=%.2f (%.2fUSD/kWh) solo=%.1f years/block" % (usdperday*365,btcperday*365,usdelecperday*365,eleckWhprice,soloblockyear)
     sendTelegram(balances+"\n"+rates+'\n[public-pool.io](https://web.public-pool.io/#/app/%s)' % btcaddress)
     print(balances+"\n"+rates)
@@ -120,9 +117,8 @@ def checkmining(btcaddress):
 
 
 if __name__ == "__main__":
-    hostsip = discover_bitaxe_hosts_with_ips()
     try:
         checkmining(btcaddress)
     except (Exception,ZeroDivisionError) as e:
-        sendTelegram(f"bitaxe hosts: {str(hostsip)}\n{str(e)}")
+        sendTelegram(f"ERR:{str(e)}")
         raise
