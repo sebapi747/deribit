@@ -30,7 +30,7 @@ def discover_bitaxe_hosts_with_ips():
                     hostname = parts[4] if len(parts) > 4 else None
                     ip = parts[-1].strip('()')
                     
-                    if hostname and ('bitaxe' in hostname.lower()):
+                    if hostname and ('bitaxe' in hostname.lower() or 'suprahex' in hostname.lower()):
                         hosts.append((hostname, ip))
     except FileNotFoundError:
         print("Error reading nmap output")
