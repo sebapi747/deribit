@@ -1,4 +1,4 @@
-import requests,json,os,csv
+import requests,json,os,csv,time
 import datetime as dt
 from lxml.html.soupparser import fromstring
 from pathlib import Path
@@ -16,7 +16,24 @@ def sendTelegram(text):
     resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
     resp.raise_for_status()
     
-
+def discover_bitaxe_hosts_with_ips():
+    os.system("nmap -sn 192.168.1.0/24 > nmap-out.txt 2>&1")
+    time.sleep(2)
+    hosts = []
+    try:
+        with open("nmap-out.txt", 'r') as f:
+            for line in f:
+                if 'Nmap scan report for' in line:
+                    parts = line.strip().split()
+                    hostname = parts[4] if len(parts) > 4 else None
+                    ip = parts[-1].strip('()')
+                    
+                    if hostname and ('bitaxe' in hostname.lower()):
+                        hosts.append((hostname, ip))
+    except FileNotFoundError:
+        print("Error reading nmap output")
+    return hosts
+    
 def oceanmyhashrate(hashratedic):
     try:
         threehouravghash = hashratedic['3 hrs']
@@ -100,5 +117,5 @@ if __name__ == "__main__":
     try:
         checkmining(btcaddress)
     except (Exception,ZeroDivisionError) as e:
-        sendTelegram("ERR: "+str(e))
+        sendTelegram(f"bitaxe hosts: {discover_bitaxe_hosts_with_ips().join(',')}\n{str(e)}")
         raise
