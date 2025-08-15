@@ -35,6 +35,10 @@ def discover_bitaxe_hosts_with_ips():
     except FileNotFoundError:
         print("Error reading nmap output")
     return hosts
+def restart_bitaxe(hostname="bitaxe"):
+    url = f"http://{hostname}/api/restart"  # Common Bitaxe API endpoint
+    response = requests.post(url, timeout=10)
+    return response.status_code
     
 def oceanmyhashrate(hashratedic):
     try:
@@ -89,6 +93,9 @@ def checkmining(btcaddress):
         raise Exception("ERR:%s %d" % (url,x.status_code))
     answer = x.json()
     myhashrate,poolbalance = poolio(btcaddress)
+    if myhashrate == 0:
+        restart_status = restart_bitaxe()
+        sendTelegram(f"Hashrate 0 - Restart attempt: HTTP {restart_status}")
     eleckWhprice = 0.053
     block_reward=100*2**(-answer['data']['blocks']//210000)
     totalhashperbtc  = float(answer['data']['hashrate_24h'])*60*10/block_reward
