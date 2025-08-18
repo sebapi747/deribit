@@ -39,6 +39,27 @@ def restart_bitaxe(hostname="bitaxe"):
     response = requests.get(f"http://{hostname}/api/restart", timeout=10)
     return response.status_code
     
+def get_bitaxe_config(ip):
+    try:
+        # Query ASIC config (frequency, voltage, etc.)
+        asic_response = requests.get(f"http://{ip}/api/system/asic", timeout=10)
+        asic_data = asic_response.json() if asic_response.status_code == 200 else None
+        
+        # Query system info (general config)
+        system_response = requests.get(f"http://{ip}/api/system/info", timeout=10)
+        system_data = system_response.json() if system_response.status_code == 200 else None
+        
+        if asic_data and system_data:
+            config_str = f"ASIC Config: {json.dumps(asic_data, indent=2)}\nSystem Info: {json.dumps(system_data, indent=2)}"
+            sendTelegram(f"Pre-restart config:\n{config_str}")
+            return asic_data, system_data
+        else:
+            sendTelegram(f"ERR: Failed to query config (ASIC: {asic_response.status_code}, System: {system_response.status_code})")
+            return None, None
+    except Exception as e:
+        sendTelegram(f"ERR querying config: {str(e)}")
+        return None, None
+    
 def oceanmyhashrate(hashratedic):
     try:
         threehouravghash = hashratedic['3 hrs']
@@ -72,7 +93,7 @@ def oceanmining(btcaddress):
     for i in range(len(hashratetable)//3):
         hashratedic[hashratetable[3*i]] = hashratetable[3*i+1]
     return oceanmyhashrate(hashratedic), oceanmybtcpayout(payoutsnap)
-
+        
 def poolio(btcaddress):
     url = "https://public-pool.io:40557/api/client/%s" % btcaddress
     x = requests.get(url,verify=False)
@@ -93,6 +114,7 @@ def checkmining(btcaddress):
     answer = x.json()
     myhashrate,poolbalance = poolio(btcaddress)
     if myhashrate == 0:
+        get_bitaxe_config("bitaxe")
         restart_status = restart_bitaxe()
         sendTelegram(f"🔧 Restart sent to bitaxe (HTTP {restart_status})")
     eleckWhprice = 0.053
