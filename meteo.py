@@ -167,6 +167,7 @@ def fetch_weather_data(lat, lon, timezone):
     }
     response = requests.get(WEATHER_API_URL, params=params)
     response.raise_for_status()
+    time.sleep(1)  # 1-second delay
     return response.json()
 
 def fetch_air_quality_data(lat, lon, timezone):
@@ -180,6 +181,7 @@ def fetch_air_quality_data(lat, lon, timezone):
     }
     response = requests.get(AIR_QUALITY_API_URL, params=params)
     response.raise_for_status()
+    time.sleep(1)  # 1-second delay
     return response.json()
 
 def save_to_csv(data, air_quality_data, csv_file, timezone, location_name):
