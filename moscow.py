@@ -64,6 +64,49 @@ def get_all_prices(page):
         sendTelegram("expected 70 quotes, got only:"+len(price))
 
 
+def analyze_quote_dates():
+    """
+    Analyze quote dates and return information about max dates and stale tickers
+    Returns:
+        tuple: (max_date, max_date_count, stale_tickers_map)
+    """
+    maxquotedateMapByTicker = {}
+    mapStaleTickers = {}
+    
+    # Get all ticker CSV files
+    csv_files = [f for f in os.listdir(dirname) if f.endswith('.csv')]
+    
+    if not csv_files:
+        return None, 0, {}
+    
+    # Read each file and find max date
+    for file in csv_files:
+        ticker = file.replace('.csv', '')
+        try:
+            df = pd.read_csv(dirname + file)
+            df['lastupdated'] = pd.to_datetime(df['lastupdated'])
+            max_date = df['lastupdated'].max()
+            maxquotedateMapByTicker[ticker] = max_date
+        except Exception as e:
+            print(f"ERROR: Could not read {file}: {e}")
+            continue
+    
+    if not maxquotedateMapByTicker:
+        return None, 0, {}
+    
+    # Find the overall max date
+    overall_max_date = max(maxquotedateMapByTicker.values())
+    
+    # Count tickers with max date and find stale tickers
+    max_date_count = 0
+    for ticker, date in maxquotedateMapByTicker.items():
+        if date == overall_max_date:
+            max_date_count += 1
+        else:
+            mapStaleTickers[ticker] = date
+    
+    return overall_max_date, max_date_count, mapStaleTickers
+    
 def plot_moscow():
     moscowdir = dirname
     moscdf = pd.read_csv("moscow.csv")
@@ -104,7 +147,25 @@ def plot_moscow():
         plt.close()
     print("INFO: rsync -avzhe ssh ",outdir,remotedir)
     os.system('rsync -avzhe ssh %s %s' % (outdir, remotedir))
-    sendTelegram("updated [moscow quotes](https://www.markowitzoptimizer.pro/blog/39)")
+    max_date, max_date_count, stale_tickers = analyze_quote_dates()
+    if max_date:
+        max_date_str = max_date.strftime('%Y-%m-%d %H:%M:%S UTC')
+        message = f"updated [moscow quotes](https://www.markowitzoptimizer.pro/blog/39)\n"
+        message += f"Max date: {max_date_str}\n"
+        message += f"Tickers with max date: {max_date_count}\n"
+        
+        if stale_tickers:
+            message += f"Stale tickers ({len(stale_tickers)}):\n"
+            for ticker, date in list(stale_tickers.items())[:5]:  # Show first 5 to avoid message being too long
+                date_str = date.strftime('%Y-%m-%d %H:%M:%S')
+                message += f"  {ticker}: {date_str}\n"
+            if len(stale_tickers) > 5:
+                message += f"  ... and {len(stale_tickers) - 5} more\n"
+        else:
+            message += "All tickers are up to date!"
+    else:
+        message = "updated [moscow quotes](https://www.markowitzoptimizer.pro/blog/39)\nNo quote data found!"
+    sendTelegram(message)
 
 if __name__ == "__main__":
     get_outputdir()
