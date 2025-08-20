@@ -85,7 +85,7 @@ def analyze_quote_dates():
         try:
             df = pd.read_csv(dirname + file)
             df['lastupdated'] = pd.to_datetime(df['lastupdated'])
-            max_date = df['lastupdated'].max()
+            max_date = df['lastupdated'].max().date()
             maxquotedateMapByTicker[ticker] = max_date
         except Exception as e:
             print(f"ERROR: Could not read {file}: {e}")
