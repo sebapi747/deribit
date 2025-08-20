@@ -42,24 +42,28 @@ def restart_bitaxe(hostname="bitaxe"):
 def get_bitaxe_config(ip):
     try:
         # Query ASIC config
-        asic_response = requests.get(f"http://{ip}/api/system/asic", timeout=10)
+        headers = {
+            'Accept': 'application/json',
+            'User-Agent': 'MiningMonitor/1.0'
+        }
+        asic_response = requests.get(f"http://{ip}/api/system/asic", headers=headers, timeout=10)
         asic_data = None
         if asic_response.status_code == 200 and asic_response.content:
             try:
                 asic_data = asic_response.json()
             except json.JSONDecodeError:
                 # Not JSON - log what we actually got
-                content_preview = asic_response.text[:100] if asic_response.text else "Empty"
+                content_preview = asic_response.text[:250] if asic_response.text else "Empty"
                 sendTelegram(f"ASIC API returned non-JSON: {content_preview}")
         
         # Query system info
-        system_response = requests.get(f"http://{ip}/api/system/info", timeout=10)
+        system_response = requests.get(f"http://{ip}/api/system/info", headers=headers, timeout=10)
         system_data = None
         if system_response.status_code == 200 and system_response.content:
             try:
                 system_data = system_response.json()
             except json.JSONDecodeError:
-                content_preview = system_response.text[:100] if system_response.text else "Empty"
+                content_preview = system_response.text[:250] if system_response.text else "Empty"
                 sendTelegram(f"System API returned non-JSON: {content_preview}")
         
         if asic_data and system_data:
@@ -69,9 +73,9 @@ def get_bitaxe_config(ip):
         else:
             error_msg = f"ERR: Failed to get config (ASIC: {asic_response.status_code}, System: {system_response.status_code})"
             if asic_response.content:
-                error_msg += f" ASIC content: {asic_response.text[:50]}..."
+                error_msg += f" ASIC content: {asic_response.text[:250]}..."
             if system_response.content:
-                error_msg += f" System content: {system_response.text[:50]}..."
+                error_msg += f" System content: {system_response.text[:250]}..."
             sendTelegram(error_msg)
             return None, None
             
