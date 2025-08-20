@@ -46,6 +46,7 @@ def get_bitaxe_config(ip):
         asic_response = requests.get(f"http://{ip}/api/system/asic", headers=headers, timeout=10)
         asic_data = None
         if asic_response.status_code == 200 and asic_response.content:
+            asic_content_type = asic_response.headers.get('Content-Type', '')
             try:
                 asic_data = asic_response.json()
             except json.JSONDecodeError:
@@ -57,13 +58,14 @@ def get_bitaxe_config(ip):
         system_response = requests.get(f"http://{ip}/api/system/info", headers=headers, timeout=10)
         system_data = None
         if system_response.status_code == 200 and system_response.content:
+            system_content_type = system_response.headers.get('Content-Type', '')
             try:
                 system_data = system_response.json()
             except json.JSONDecodeError:
                 content_preview = system_response.text[:1250] if system_response.text else "Empty"
                 sendTelegram(f"System API returned non-JSON: {content_preview}")
         
-        config_str = f"ASIC Config: {str(asic_data)}\nSystem Info: {str(system_data)}"
+        config_str = f"ASIC {asic_content_type}: {str(asic_data)}\nSystem {system_content_type}: {str(system_data)}"
         sendTelegram(f"Pre-restart config:\n{config_str}")
         return asic_data, system_data            
     except requests.exceptions.RequestException as e:
