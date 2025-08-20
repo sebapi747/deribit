@@ -42,10 +42,7 @@ def restart_bitaxe(hostname="bitaxe"):
 def get_bitaxe_config(ip):
     try:
         # Query ASIC config
-        headers = {
-            'Accept': 'application/json',
-            'User-Agent': 'MiningMonitor/1.0'
-        }
+        headers = {'Accept': 'application/json'}
         asic_response = requests.get(f"http://{ip}/api/system/asic", headers=headers, timeout=10)
         asic_data = None
         if asic_response.status_code == 200 and asic_response.content:
