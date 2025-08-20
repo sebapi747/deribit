@@ -66,19 +66,9 @@ def get_bitaxe_config(ip):
                 content_preview = system_response.text[:1250] if system_response.text else "Empty"
                 sendTelegram(f"System API returned non-JSON: {content_preview}")
         
-        if asic_data and system_data:
-            config_str = f"ASIC Config: {json.dumps(asic_data, indent=2)}\nSystem Info: {json.dumps(system_data, indent=2)}"
-            sendTelegram(f"Pre-restart config:\n{config_str}")
-            return asic_data, system_data
-        else:
-            error_msg = f"ERR: Failed to get config (ASIC: {asic_response.status_code}, System: {system_response.status_code})"
-            if asic_response.content:
-                error_msg += f" ASIC content: {asic_response.text[:1250]}..."
-            if system_response.content:
-                error_msg += f" System content: {system_response.text[:1250]}..."
-            sendTelegram(error_msg)
-            return None, None
-            
+        config_str = f"ASIC Config: {str(asic_data)}\nSystem Info: {str(system_data)}"
+        sendTelegram(f"Pre-restart config:\n{config_str}")
+        return asic_data, system_data            
     except requests.exceptions.RequestException as e:
         sendTelegram(f"Network error querying {ip}: {str(e)}")
         return None, None
