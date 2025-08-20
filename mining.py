@@ -53,7 +53,7 @@ def get_bitaxe_config(ip):
                 asic_data = asic_response.json()
             except json.JSONDecodeError:
                 # Not JSON - log what we actually got
-                content_preview = asic_response.text[:250] if asic_response.text else "Empty"
+                content_preview = asic_response.text[:1250] if asic_response.text else "Empty"
                 sendTelegram(f"ASIC API returned non-JSON: {content_preview}")
         
         # Query system info
@@ -63,7 +63,7 @@ def get_bitaxe_config(ip):
             try:
                 system_data = system_response.json()
             except json.JSONDecodeError:
-                content_preview = system_response.text[:250] if system_response.text else "Empty"
+                content_preview = system_response.text[:1250] if system_response.text else "Empty"
                 sendTelegram(f"System API returned non-JSON: {content_preview}")
         
         if asic_data and system_data:
@@ -73,9 +73,9 @@ def get_bitaxe_config(ip):
         else:
             error_msg = f"ERR: Failed to get config (ASIC: {asic_response.status_code}, System: {system_response.status_code})"
             if asic_response.content:
-                error_msg += f" ASIC content: {asic_response.text[:250]}..."
+                error_msg += f" ASIC content: {asic_response.text[:1250]}..."
             if system_response.content:
-                error_msg += f" System content: {system_response.text[:250]}..."
+                error_msg += f" System content: {system_response.text[:1250]}..."
             sendTelegram(error_msg)
             return None, None
             
