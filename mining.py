@@ -10,13 +10,16 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 #btcaddress = '38zPevxjY7bNxtRMnpbs8rF5tMnpTCWtNt'
 #btcaddress = "1MeNUCC6buJUaj5L2PAiZtSso44xdVUn7C"
+git_id = "$Id$"
 btcaddress = "bc1qgcvc74jydsuz89675d9se5v6klmwl564qdmnzu"
 
 def sendTelegram(text):
-    f = __file__
-    params = {'chat_id': config.telegramchatid, 'text': os.uname()[1]+":"+f+":ALERT:" +text, 'parse_mode': 'markdown'}
-    resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
-    resp.raise_for_status()
+    text = f"{os.uname()[1]}:{__file__}:{git_id}:ALERT:" +text
+    chunks = [text[i:i+available_length] for i in range(0, len(text), 4000)]
+    for i, chunk in enumerate(chunks):
+        params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'markdown'}
+        resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
+        resp.raise_for_status()
     
 def discover_bitaxe_hosts_with_ips():
     os.system("nmap -sn 192.168.1.0/24 > nmap-out.txt 2>&1")
@@ -51,7 +54,7 @@ def get_bitaxe_config(ip):
                 asic_data = asic_response.json()
             except json.JSONDecodeError:
                 # Not JSON - log what we actually got
-                content_preview = asic_response.text[:1250] if asic_response.text else "Empty"
+                content_preview = asic_response.text if asic_response.text else "Empty"
                 sendTelegram(f"ASIC API returned non-JSON: {content_preview}")
         
         # Query system info
@@ -62,7 +65,7 @@ def get_bitaxe_config(ip):
             try:
                 system_data = system_response.json()
             except json.JSONDecodeError:
-                content_preview = system_response.text[:1250] if system_response.text else "Empty"
+                content_preview = system_response.text if system_response.text else "Empty"
                 sendTelegram(f"System API returned non-JSON: {content_preview}")
         
         config_str = f"ASIC {asic_content_type}: {str(asic_data)}\nSystem {system_content_type}: {str(system_data)}"
@@ -130,8 +133,8 @@ def checkmining(btcaddress):
     myhashrate,poolbalance = poolio(btcaddress)
     if myhashrate == 0:
         get_bitaxe_config("bitaxe")
-        restart_status = restart_bitaxe()
-        sendTelegram(f"🔧 Restart sent to bitaxe (HTTP {restart_status})")
+        #restart_status = restart_bitaxe()
+        #sendTelegram(f"🔧 Restart sent to bitaxe (HTTP {restart_status})")
     eleckWhprice = 0.053
     block_reward=100*2**(-answer['data']['blocks']//210000)
     totalhashperbtc  = float(answer['data']['hashrate_24h'])*60*10/block_reward
