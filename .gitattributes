@@ -1,0 +1,6 @@
+# In .gitattributes file
+*.c ident
+*.h ident
+*.py ident
+*.html ident
+*.css ident
