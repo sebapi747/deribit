@@ -156,11 +156,11 @@ def plot_moscow():
         
         if stale_tickers:
             message += f"Stale tickers ({len(stale_tickers)}):\n"
-            for ticker, date in list(stale_tickers.items())[:5]:  # Show first 5 to avoid message being too long
+            for ticker, date in list(stale_tickers.items())[:10]:  # Show first 10 to avoid message being too long
                 date_str = date.strftime('%Y-%m-%d %H:%M:%S')
                 message += f"  {ticker}: {date_str}\n"
-            if len(stale_tickers) > 5:
-                message += f"  ... and {len(stale_tickers) - 5} more\n"
+            if len(stale_tickers) > 10:
+                message += f"  ... and {len(stale_tickers) - 10} more\n"
         else:
             message += "All tickers are up to date!"
     else:
