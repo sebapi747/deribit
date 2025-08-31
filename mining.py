@@ -14,8 +14,9 @@ git_id = "$Id$"
 btcaddress = "bc1qgcvc74jydsuz89675d9se5v6klmwl564qdmnzu"
 
 def sendTelegram(text):
+    available_length = 4000
     text = f"{os.uname()[1]}:{__file__}:{git_id}:ALERT:" +text
-    chunks = [text[i:i+available_length] for i in range(0, len(text), 4000)]
+    chunks = [text[i:i+available_length] for i in range(0, len(text), available_length)]
     for i, chunk in enumerate(chunks):
         params = {'chat_id': config.telegramchatid, 'text': text, 'parse_mode': 'markdown'}
         resp = requests.post('https://api.telegram.org/bot{}/sendMessage'.format(config.telegramtoken), params)
