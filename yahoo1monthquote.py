@@ -21,7 +21,7 @@ def sendTelegram(text):
         resp.raise_for_status()
     else:
         idx = text.rfind("\n",0,maxlen)
-        if idx==-1:
+        if idx==-1 or idx < maxlen // 2:
             idx = maxlen-1
         sendTelegram(text[:idx])
         sendTelegram(text[idx:])
@@ -224,7 +224,7 @@ def getceftickerdata():
     msg = "INFO:getceftickerdata retrieved %d tickers%s see [cef blog](https://www.markowitzoptimizer.pro/blog/91)\n" % (found,len(tickers))
     msg += "**retrieve %d, skip %d of %d cef** tickers" % (found,skip,oldlen)
     if len(errmsg)>0:
-        msg += f"\n{len(errmsg)} errors:\n"+", ".join(errmsg)
+        msg += f"\n{len(errmsg)} errors:\n"+",".join(errmsg)
     plot_cef()
     print(msg)
     sendTelegram(msg)
