@@ -57,6 +57,7 @@ def bs_premium(F, K, T, r, sigma):
     return call, put, vega
 
 def get_csv(filename):
+    print(f"reading {filename}")
     df = pd.read_csv(filename)
     df = df.dropna() #[-300:]
     df['Date'] = pd.to_datetime(df['Date'])
@@ -74,7 +75,9 @@ def graph_vol(df, bar):
     ax2 = ax1.twinx()
     ax1.plot(df['Date'], df['vol'], label="vol", color="orange")
     ax1.set_ylabel("annualized monthly rolling %day bar volatility" % bar)
-    ax2.plot(df['Date'], np.log10(df['Close']), label="BTC", color="blue")
+    ax2.plot(df['Date'], df['Close'], label="BTC", color="blue")
+    #ax2.grid(True, axis='y')
+    ax2.yscale('log')
     ax2.set_ylabel("BTC log10 price")
     plt.title("BTC Log Price and Volatility\nUpdated: %s" % str(df['Date'].iloc[-1])[:10])
     ax1.legend(loc="upper left")
