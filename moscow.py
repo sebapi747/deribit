@@ -41,7 +41,7 @@ def append_csv(filename,errdf):
 
 def get_all_prices(page):
     price,err = {},{}
-    moscow_ticks = '["ABRD", "AFKS", "AFLT", "AKRN", "ALRS", "AMEZ", "AQUA", "AVAN", "BANE", "BELU", "BSPB", "CBOM", "CHGZ", "CHMF", "DSKY", "ENPG", "FEES", "FESH", "FLOT", "GAZP", "GCHE", "GEMA", "GMKN", "HYDR", "IRAO", "JNOS", "KAZT", "KMAZ", "KOGK", "KRKN", "KZOS", "LKOH", "LSNG", "LSRG", "MAGN", "MFGS", "MGNT", "MGNZ", "MGTS", "MOEX", "MRKC", "MRKP", "MRKU", "MRKV", "MSNG", "MSRS", "MTLR", "MTSS", "MVID", "NKHP", "NKNC", "NKSH", "NLMK", "NMTP", "NVTK", "OGKB", "PHOR", "PIKK", "PLZL", "POSI", "RASP", "RENI", "RNFT", "ROSN", "RTGZ", "RTKM", "RUAL", "SBER", "SELG", "SFIN", "SGZH", "SIBN", "SMLT", "SNGS", "SVAV", "TATN", "TGKA", "TORS", "TRMK", "TTLK", "UNAC", "VGSB", "VSMO", "VTBR", "YKEN"]'
+    moscow_ticks = '["ABRD", "AFKS", "AFLT", "AKRN", "ALRS", "AMEZ", "AQUA", "BANE", "BELU", "BSPB", "CBOM", "CHGZ", "CHMF", "DSKY", "ENPG", "FESH", "FLOT", "GAZP", "GCHE", "GMKN", "HYDR", "IRAO", "KAZT", "KMAZ", "KOGK", "KRKN", "KZOS", "LKOH", "LSNG", "LSRG", "MAGN", "MFGS", "MGNT", "MGNZ", "MGTS", "MOEX", "MRKC", "MRKP", "MRKU", "MRKV", "MSNG", "MSRS", "MTLR", "MTSS", "MVID", "NKHP", "NKNC", "NKSH", "NLMK", "NMTP", "NVTK", "OGKB", "PHOR", "PIKK", "PLZL", "POSI", "RASP", "RENI", "RNFT", "ROSN", "RTGZ", "RTKM", "RUAL", "SBER", "SELG", "SFIN", "SGZH", "SIBN", "SMLT", "SNGS", "SVAV", "TATN", "TGKA", "TORS", "TRMK", "TTLK", "UNAC", "VGSB", "VSMO", "VTBR", "YKEN"]'
     for i,ticker in enumerate(json.loads(moscow_ticks)):
         try:
             url = 'https://www.tbank.ru/invest/stocks/%s/' % ticker
