@@ -162,6 +162,8 @@ def insertalltickers():
         postickers = json.load(f)
     with open("posticker.json","r") as f:
         postickers += json.load(f)
+    with open("missingpos.json","r") as f:
+        postickers += json.load(f)
     with open("goodtickers.json","r") as f:
         tickers = ["SPY","GLD","TLT"]+[t for t in json.load(f) if type(t)==str and t[-3:]!=".NS" and t not in postickers]
     ccys = ["AUD", "BRL", "CAD", "CHF", "CLP", "CNY", "COP", "CZK", "DKK", "EUR", "GBP", "HKD", "IDR", "ILS", "JPY", "MXN", "MYR", "NOK", "NZD", "PLN", "QAR", "SAR", "SEK", "SGD", "THB", "TRY", "TWD", "USD", "VND", "ZAR"]
