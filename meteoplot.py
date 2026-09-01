@@ -71,6 +71,7 @@ def plot_city_weather(csv_file):
     for ax in [ax1, ax2, ax3]:
         ax.xaxis.set_major_formatter(date_formatter)
         plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
+        ax.grid(True, alpha=0.3, linestyle='--') 
     
     # Add super title and adjust layout
     plt.suptitle(f'{city_name} Weather Data', fontsize=16)
