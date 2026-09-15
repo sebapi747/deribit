@@ -394,6 +394,7 @@ def plot_contango_yield(dirname="../deribit"):
         plt.plot(yi["t"],yi["y"])
         for immdate in immdates:
             plt.axvline(x=immdate,color="black")
+        plt.grid(True)
         plt.title("%s %s" % (ticker,r["desc"]))
         plt.ylabel("contango rate")
         plt.gcf().autofmt_xdate()
@@ -430,6 +431,7 @@ def plot_all_contango():
                 if dT>0:
                     contangolist.append({"ticker":ticker,"t":dfi["tutc"].iloc[0],"y":dP/dT})
                 plt.xticks(ticks=symbolterm, labels=symbols,rotation=45)
+        plt.grid(True)
         plt.title("%s %s %s y=%.2f%%" % (category,ticker,desc,dP/dT*100))
         plt.xlabel("quotes from:" + str(df["date"].array[0])[:10]+" to " + str(df["date"].array[-1])[:10])
         plt.savefig(outdir+"contango-%s.png" % ticker,metadata=get_metadata())
